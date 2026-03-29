@@ -10,12 +10,14 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <!-- Filtro para silenciar warnings nativos de librerías en Chrome (Quirks, XHR Sync, MouseEvent) -->
 <script>
-  const originalWarn = console.warn;
-  console.warn = function(...args) {
-    const msg = args.join(' ');
-    if (msg.includes('Synchronous XMLHttpRequest') || msg.includes('MouseEvent') || msg.includes('Quirks')) return;
-    originalWarn.apply(console, args);
-  };
+  (function(){
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      const msg = (args[0] || '').toString();
+      if (msg.includes('Synchronous XMLHttpRequest') || msg.includes('MouseEvent') || msg.includes('Quirks')) return;
+      originalWarn.apply(console, args);
+    };
+  })();
 </script>
 <style>
 :root{--bg:#f7f8fc;--bg2:#fff;--bg3:#eef1f8;--primary:#1a56db;--primary2:#1239a0;--pl:#e8efff;--accent:#ff6b2b;--green:#16a34a;--gl:#dcfce7;--text:#111827;--text2:#6b7280;--border:#e5e7eb;}
