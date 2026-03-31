@@ -1,0 +1,57 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "unidades": {
+      ".read": "auth != null",
+      "$unitId": {
+        ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || auth.token.role === 'vigilancia' || auth.uid === $unitId)"
+      }
+    },
+
+    "conductores": {
+      ".read": "auth != null",
+      "$conductorId": {
+        ".write": "auth != null && (auth.token.role === 'presidente' || auth.uid === $conductorId)"
+      }
+    },
+
+    "alertas": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "alertas_sos": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "sistema": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "bases": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.role === 'presidente'"
+    },
+
+    "despacho": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')"
+    },
+
+    "presencia": {
+      ".read": "auth != null",
+      "$conductorId": {
+        ".write": "auth != null && auth.uid === $conductorId"
+      }
+    },
+
+    "config": {
+      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'vigilancia')",
+      ".write": "auth != null && auth.token.role === 'presidente'"
+    }
+  }
+} 
