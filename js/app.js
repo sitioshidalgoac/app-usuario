@@ -113,8 +113,14 @@ function _initFirebase() {
     console.log("🚖 Conductores recibidos desde Firebase:", unidades);
     console.log("🔍 Total de unidades:", Object.keys(unidades).length);
     
-    const lib = Object.values(unidades).filter(u => u.status === "LIBRE" && u.online !== false);
-    const ocp = Object.values(unidades).filter(u => u.status === "OCUPADO");
+    const lib = Object.values(unidades).filter(u => {
+      const st = String(u.status || "").toUpperCase();
+      return st === "LIBRE" && u.online !== false;
+    });
+    const ocp = Object.values(unidades).filter(u => {
+      const st = String(u.status || "").toUpperCase();
+      return st === "OCUPADO";
+    });
     
     console.log("✅ Taxis LIBRES:", lib.length, lib);
     console.log("🔴 Taxis OCUPADOS:", ocp.length);
@@ -131,8 +137,11 @@ function _initFirebase() {
 /* ─── Taxis cerca ────────────────────────────────── */
 function _updCerca() {
   const c = Object.values(unidades)
-    .filter(u => u.status === "LIBRE" && u.lat && u.lng &&
-                 dist(myLat, myLng, u.lat, u.lng) < RADIO_CERCA)
+    .filter(u => {
+      const st = String(u.status || "").toUpperCase();
+      return st === "LIBRE" && u.lat && u.lng &&
+                 dist(myLat, myLng, u.lat, u.lng) < RADIO_CERCA;
+    })
     .length;
   console.log("📍 Taxis cercanos (radio " + RADIO_CERCA + "m):", c);
   document.getElementById("cnt-cerca").textContent = c;
@@ -178,8 +187,11 @@ window.solicitarTaxi = function() {
   if (!dest) { showToast("📍 Escribe tu destino"); return; }
 
   const libres = Object.values(unidades)
-    .filter(u => u.status === "LIBRE" && u.online !== false && u.lat && u.lng);
-console.log("🔎 Buscando taxis LIBRES...");
+    .filter(u => {
+      const st = String(u.status || "").toUpperCase();
+      return st === "LIBRE" && u.online !== false && u.lat && u.lng;
+    });
+  console.log("🔎 Buscando taxis LIBRES...");
   console.log("   Criterios: status='LIBRE', online=true, lat y lng válidos");
   console.log("   Taxis LIBRES encontrados:", libres.length);
   console.log("   Detalles:", libres);
@@ -187,9 +199,8 @@ console.log("🔎 Buscando taxis LIBRES...");
   if (!libres.length) { 
     console.warn("⚠️ No hay taxis disponibles - mostrando mensaje al usuario");
     showToast("😔 No hay taxis disponibles ahora"); 
-    return; 
- 
-  if (!libres.length) { showToast("😔 No hay taxis disponibles ahora"); return; }
+    return;
+  }
 
   // Taxi más cercano al usuario
   const cerca = libres.reduce((mejor, u) =>
@@ -226,10 +237,13 @@ console.log("🔎 Buscando taxis LIBRES...");
   guardarHistorial(historial);
 
   cerrarModal();
-  document.getElementById("v-taxi-id").textContent   = cerca.id;
-  document.getElementById("v-taxi-cond").textContent = cerca.conductor || "Conductor";
-  document.getElementById("v-destino").textContent   = dest;
-  document.getElementById("viaje-ov").classList.add("show");
+  
+  // Mostrar información del viaje en el banner
+  const viajeInf = document.getElementById("viaje-banner");
+  if (viajeInf) {
+    viajeInf.innerHTML = `🚖 <strong>${cerca.id}</strong> - ${cerca.conductor || "Conductor"} hacia <strong>${dest}</strong>`;
+    viajeInf.classList.add("show");
+  }
 
   const metros = Math.round(dist(myLat, myLng, cerca.lat, cerca.lng));
   showToast(`✅ Taxi ${cerca.id} asignado — ${metros}m aprox.`);
@@ -246,9 +260,13 @@ window.cancelarSolicitud = function() {
     try { set(ref(db, `unidades/${activeViaje.unitId}/viaje`), null); } catch {}
     activeViaje = null;
   }
-  document.getElementById("viaje-ov").classList.remove("show");
+  const viajeBanner = document.getElementById("viaje-banner");
+  if (viajeBanner) viajeBanner.classList.remove("show");
   showToast("❌ Solicitud cancelada");
 };
+
+// Alias para compatibilidad con HTML
+window.cancelarViaje = window.cancelarSolicitud;
 
 /* ══════════════════════════════════════════════════
    RATING
@@ -257,17 +275,23 @@ function _mostrarRating() {
   if (!activeViaje) return;
   rateData    = { ...activeViaje };
   activeViaje = null;
-  document.getElementById("viaje-ov").classList.remove("show");
-  document.getElementById("rate-sub").textContent = `Califica a ${rateData.conductor || "tu conductor"}`;
+  const viajeBanner = document.getElementById("viaje-banner");
+  if (viajeBanner) viajeBanner.classList.remove("show");
+  
+  // Actualizar información del modal de calificación
+  const rateUnit = document.getElementById("rate-unit");
+  if (rateUnit) rateUnit.innerHTML = `<b>Califica tu viaje</b><br><small>Conductor: ${rateData.conductor || "N/A"}</small>`;
+  
   star = 5;
   _syncStars();
-  document.getElementById("rate-ov").classList.add("show");
+  const rateModal = document.getElementById("modal-rate");
+  if (rateModal) rateModal.classList.add("open");
 }
 
 window.rateStar = function(n) { star = n; _syncStars(); };
 
 function _syncStars() {
-  document.querySelectorAll(".star").forEach((s, i) => s.classList.toggle("on", i < star));
+  document.querySelectorAll(".rate-star").forEach((s, i) => s.classList.toggle("on", i < star));
 }
 
 window.enviarRating = function() {
@@ -278,12 +302,16 @@ window.enviarRating = function() {
       });
     } catch {}
   }
-  document.getElementById("rate-ov").classList.remove("show");
+  const rateModal = document.getElementById("modal-rate");
+  if (rateModal) rateModal.classList.remove("open");
   showToast("⭐ ¡Gracias por tu calificación!");
 };
 
+// Alias para compatibilidad con HTML
+window.enviarCalif = window.enviarRating;
+
 // Asignar listeners a estrellas
-document.querySelectorAll(".star").forEach((s, i) => {
+document.querySelectorAll(".rate-star").forEach((s, i) => {
   s.onclick = () => window.rateStar(i + 1);
 });
 
@@ -305,10 +333,16 @@ function _renderHist() {
    NAVEGACIÓN
    ══════════════════════════════════════════════════ */
 window.switchNav = function(screen, btn) {
-  document.querySelectorAll(".screen").forEach(x => x.classList.remove("active"));
-  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById(`screen-${screen}`).classList.add("active");
-  btn.classList.add("active");
+  // Para compatibilidad con selectores que pueden no existir
+  const screens = document.querySelectorAll(".screen");
+  const navBtns = document.querySelectorAll(".nav-btn");
+  
+  screens.forEach(x => x.classList.remove("active"));
+  navBtns.forEach(b => b.classList.remove("active"));
+  
+  const screenEl = document.getElementById(`screen-${screen}`);
+  if (screenEl) screenEl.classList.add("active");
+  if (btn) btn.classList.add("active");
 
   if (screen === "historial") _renderHist();
   if (screen === "inicio")    refrescarMapa();

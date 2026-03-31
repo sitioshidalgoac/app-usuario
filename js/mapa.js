@@ -87,12 +87,15 @@ export function actualizarMarcadores(unidades) {
 
   // Crear o actualizar marcadores
   Object.entries(unidades).forEach(([id, u]) => {
-    if (!u.lat || !u.lng) {
+    // Validar coordenadas
+    if (!u.lat || !u.lng || typeof u.lat !== 'number' || typeof u.lng !== 'number') {
       console.log("  ⚠️  Unidad", id, "sin coordenadas válidas");
       return;
     }
 
-    const libre = u.status === "LIBRE" && u.online !== false;
+    // Normalizar status
+    const st = String(u.status || "").toUpperCase();
+    const libre = st === "LIBRE" && u.online !== false;
     const sz    = libre ? 28 : 20;
     const color = libre ? "#16a34a" : "#9ca3af";
     const op    = u.online !== false ? 1 : 0.4;
@@ -116,15 +119,21 @@ export function actualizarMarcadores(unidades) {
     } else {
       mks[id] = L.marker([u.lat, u.lng], { icon: ic })
         .addTo(map)
-        .bindPopup(`<b>${id}</b><br>${u.conductor || ""}<br><b>${u.status}</b>`);
+        .bindPopup(`<b>${id}</b><br>${u.conductor || ""}<br><b>${st}</b>`);
     }
   });
 }
 
 /* ─── CENTRAR EN BASE ────────────────────────────── */
 export function centrarEnBase(baseId) {
+  if (!baseId || !BASES) return;
   const b = BASES.find(x => x.id === baseId);
-  if (b && map) map.setView([b.lat, b.lng], 17);
+  if (b && map && typeof b.lat === 'number' && typeof b.lng === 'number') {
+    map.setView([b.lat, b.lng], 17);
+    console.log(`📍 Mapa centrado en base ${baseId}`);
+  } else {
+    console.warn(`⚠️ Base ${baseId} no encontrada o coordenadas inválidas`);
+  }
 }
 
 /* ─── INVALIDAR TAMAÑO (al volver al mapa) ───────── */
