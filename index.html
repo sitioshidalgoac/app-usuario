@@ -22,7 +22,7 @@
    Lee de Firebase RTDB /unidades/ — mismo nodo que Base y Conductor
    ═══════════════════════════════════════════════════════════ */
 :root {
-  --bg:       #0a0a14;
+  --bg:       #0A0A0A;
   --bg2:      #12121e;
   --bg3:      #1a1a2e;
   --card:     #16162a;
@@ -36,6 +36,8 @@
   --libre:    #00ff88;
   --ocupado:  #ff6b00;
   --offline:  #6a6a8a;
+  --gold:     #FFD700;
+  --gold-dark:#DAA520;
   --radius:   14px;
   --font:     'Poppins', 'Rajdhani', sans-serif;
   --font-alt: 'Rajdhani', sans-serif;
@@ -54,7 +56,7 @@ body {
 /* ── SPLASH ─────────────────────────────────────────── */
 #splash {
   position:fixed; inset:0; z-index:9999;
-  background: linear-gradient(135deg, #0a0a14 0%, #1a1a2e 50%, #0a0a14 100%);
+  background: linear-gradient(135deg, #0A0A0A 0%, #1a1a2e 50%, #0A0A0A 100%);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   transition: opacity 0.6s ease-out, transform 0.6s ease-out;
   animation: splash-enter 0.8s ease-out;
@@ -64,17 +66,40 @@ body {
   100% { opacity: 1; transform: scale(1); }
 }
 #splash.hide { opacity:0; transform:scale(1.1); pointer-events:none; }
-.splash-logo {
-  font-size: 56px; margin-bottom: 8px;
-  animation: pulse-glow 1.5s ease-in-out infinite;
+
+.splash-logo-img {
+  width: 180px; height: 180px; margin-bottom: 16px;
+  filter: drop-shadow(0 0 40px rgba(255,215,0,0.8)) 
+          drop-shadow(0 8px 16px rgba(0,0,0,0.9))
+          brightness(1.1) saturate(1.2);
+  animation: splash-fade-in-sweep 1.2s cubic-bezier(0.34,1.56,0.64,1);
 }
-@keyframes pulse-glow {
-  0%,100% { filter: drop-shadow(0 0 10px rgba(0,201,255,0.3)); }
-  50%     { filter: drop-shadow(0 0 25px rgba(0,201,255,0.7)); }
+
+@keyframes splash-fade-in-sweep {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+    filter: drop-shadow(0 0 0px rgba(255,215,0,0))  
+            drop-shadow(0 8px 16px rgba(0,0,0,0.9))
+            brightness(0.8) saturate(1.2);
+  }
+  50% {
+    filter: drop-shadow(0 0 60px rgba(255,215,0,1))
+            drop-shadow(0 8px 16px rgba(0,0,0,0.9))
+            brightness(1.2) saturate(1.3);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 0 40px rgba(255,215,0,0.8))
+            drop-shadow(0 8px 16px rgba(0,0,0,0.9))
+            brightness(1.1) saturate(1.2);
+  }
 }
+
 .splash-name {
   font-size: 28px; font-weight: 700;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  background: linear-gradient(90deg, #FFD700, #FFA500);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   letter-spacing: 2px;
 }
@@ -85,7 +110,7 @@ body {
 }
 .splash-bar::after {
   content:''; display:block; width:40%; height:100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  background: linear-gradient(90deg, #FFD700, #FFA500);
   border-radius: 3px;
   animation: load-slide 1.2s ease-in-out infinite;
 }
@@ -194,6 +219,7 @@ body {
   position:fixed;
   top:106px; left:0; right:0; bottom:64px;
   z-index:1;
+  filter: invert(0.85) hue-rotate(200deg) saturate(0.8) brightness(0.7);
 }
 .leaflet-control-attribution { display:none !important; }
 
@@ -218,40 +244,55 @@ body {
 .btn-solicitar {
   position:fixed; bottom:76px; left:50%; z-index:60;
   transform:translateX(-50%);
-  width:auto; min-width:200px; height:56px;
-  padding:0 32px;
+  width:auto; min-width:240px; height:60px;
+  padding:0 40px;
   border-radius:50px;
-  background: linear-gradient(135deg, #00e676, #00c853);
-  border:none; color:#000; font-family:var(--font);
-  font-size:16px; font-weight:700; letter-spacing:1px;
-  box-shadow: 0 4px 24px rgba(0,230,118,0.5), 0 0 40px rgba(0,230,118,0.15);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #DAA520 100%);
+  border:2px solid #FFE940; color:#000; font-family:var(--font);
+  font-size:16px; font-weight:700; letter-spacing:1.5px;
+  box-shadow: 0 6px 24px rgba(255,215,0,0.6), 
+              0 0 40px rgba(255,165,0,0.3),
+              inset 0 1px 0 rgba(255,255,255,0.3);
   cursor:pointer;
-  display:flex; align-items:center; justify-content:center; gap:10px;
-  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, letter-spacing 0.2s;
-  animation: btn-pulse 2.5s ease-in-out infinite;
+  display:flex; align-items:center; justify-content:center; gap:12px;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), 
+              box-shadow 0.3s ease, 
+              letter-spacing 0.2s;
+  animation: btn-glow-pulse 2.5s ease-in-out infinite;
 }
+
+@keyframes btn-glow-pulse {
+  0%,100% { box-shadow: 0 6px 24px rgba(255,215,0,0.6), 
+                        0 0 40px rgba(255,165,0,0.3),
+                        inset 0 1px 0 rgba(255,255,255,0.3); }
+  50%     { box-shadow: 0 8px 32px rgba(255,215,0,0.8),
+                        0 0 60px rgba(255,165,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.4); }
+}
+
 .btn-solicitar:hover {
   transform:translateX(-50%) scale(1.08);
-  box-shadow: 0 8px 36px rgba(0,230,118,0.6), 0 0 60px rgba(0,230,118,0.3);
+  box-shadow: 0 10px 40px rgba(255,215,0,0.8),
+              0 0 60px rgba(255,165,0,0.5),
+              inset 0 1px 0 rgba(255,255,255,0.4);
   letter-spacing:2px;
 }
 .btn-solicitar:active {
-  transform:translateX(-50%) scale(0.94);
-  box-shadow: 0 2px 12px rgba(0,230,118,0.4), 0 0 20px rgba(0,230,118,0.1);
+  transform:translateX(-50%) scale(0.96);
+  box-shadow: 0 3px 12px rgba(255,215,0,0.4),
+              0 0 20px rgba(255,165,0,0.2),
+              inset 0 1px 0 rgba(255,255,255,0.2);
   animation:none;
 }
 .btn-solicitar:disabled {
   opacity:0.35; cursor:not-allowed;
-  background: linear-gradient(135deg, #555, #444);
+  background: linear-gradient(135deg, #666, #555);
+  border-color: #777;
   box-shadow: none; animation:none;
 }
 .btn-sol-icon { font-size:24px; transition:transform 0.3s ease; }
 .btn-solicitar:hover .btn-sol-icon { transform:scale(1.2) rotate(5deg); }
 .btn-sol-text { font-size:16px; }
-@keyframes btn-pulse {
-  0%,100% { box-shadow: 0 4px 24px rgba(0,230,118,0.5), 0 0 40px rgba(0,230,118,0.15); }
-  50%     { box-shadow: 0 6px 32px rgba(0,230,118,0.7), 0 0 60px rgba(0,230,118,0.25); }
-}
 
 /* ── BOTTOM NAV ─────────────────────────────────────── */
 #bottom-nav {
@@ -326,11 +367,27 @@ body {
 .sol-field::placeholder { color:var(--text2); }
 
 .sol-btn {
-  width:100%; padding:14px; margin-top:12px;
-  background: linear-gradient(135deg, var(--accent2), #00aa66);
-  border:none; border-radius:var(--radius);
+  width:100%; padding:16px; margin-top:12px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #DAA520 100%);
+  border:2px solid #FFE940; border-radius:var(--radius);
   color:#000; font-family:var(--font); font-size:16px; font-weight:700;
   cursor:pointer; letter-spacing:1px;
+  box-shadow: 0 6px 24px rgba(255,215,0,0.5), 
+              0 0 40px rgba(255,165,0,0.2),
+              inset 0 1px 0 rgba(255,255,255,0.3);
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.sol-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(255,215,0,0.7),
+              0 0 60px rgba(255,165,0,0.4),
+              inset 0 1px 0 rgba(255,255,255,0.4);
+  letter-spacing:1.5px;
+}
+.sol-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 3px 12px rgba(255,215,0,0.4),
+              0 0 20px rgba(255,165,0,0.15);
 }
 
 /* ── VIAJE ACTIVO BANNER ────────────────────────────── */
@@ -481,9 +538,9 @@ body {
 <div class="bases-row" id="bases-row"></div>
 
 <!-- ═══ SOLICITAR BTN ═══ -->
-<button class="btn-solicitar" id="btn-solicitar" onclick="abrirSolicitud()" disabled title="Solicitar taxi">
+<button class="btn-solicitar" id="btn-solicitar" onclick="abrirSolicitud()" disabled title="Solicitar taxi premium">
   <span class="btn-sol-icon">🚖</span>
-  <span class="btn-sol-text">PEDIR TAXI</span>
+  <span class="btn-sol-text">SOLICITAR SERVICIO PREMIUM</span>
 </button>
 
 <!-- ═══ VIAJE ACTIVO BANNER ═══ -->
@@ -497,10 +554,10 @@ body {
 <div class="modal-bg" id="modal-sol">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title">🚖 Solicitar Taxi</div>
+    <div class="modal-title">🚖 Solicitar Servicio Premium</div>
     <input class="sol-field" id="sol-destino" type="text" placeholder="¿A dónde vas?">
     <input class="sol-field" id="sol-ref" type="text" placeholder="Referencia de recogida (opcional)">
-    <button class="sol-btn" onclick="solicitarTaxi()">PEDIR TAXI AHORA</button>
+    <button class="sol-btn" onclick="solicitarTaxi()">SOLICITAR SERVICIO PREMIUM</button>
     <div style="text-align:center;margin-top:12px">
       <span class="login-skip" onclick="cerrarModal()">Cancelar</span>
     </div>
