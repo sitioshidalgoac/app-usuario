@@ -74,22 +74,32 @@ export function actualizarMiPosicion(lat, lng) {
 export function actualizarMarcadores(unidades) {
   if (!map) return;
 
+  console.log("🗺️  Actualizando marcadores en mapa. Total unidades:", Object.keys(unidades).length);
+
   // Eliminar marcadores de unidades que ya no existen en Firebase
   Object.keys(mks).forEach(id => {
     if (!unidades[id]) {
       map.removeLayer(mks[id]);
       delete mks[id];
+      console.log("  ❌ Marcador removido:", id);
     }
   });
 
   // Crear o actualizar marcadores
   Object.entries(unidades).forEach(([id, u]) => {
-    if (!u.lat || !u.lng) return;
+    if (!u.lat || !u.lng) {
+      console.log("  ⚠️  Unidad", id, "sin coordenadas válidas");
+      return;
+    }
 
     const libre = u.status === "LIBRE" && u.online !== false;
     const sz    = libre ? 28 : 20;
     const color = libre ? "#16a34a" : "#9ca3af";
     const op    = u.online !== false ? 1 : 0.4;
+
+    if (libre) {
+      console.log(`  ✅ Unidad ${id} LIBRE en mapa - Lat: ${u.lat}, Lng: ${u.lng}`);
+    }
 
     const ic = L.divIcon({
       html: `<div style="background:${color};width:${sz}px;height:${sz}px;

@@ -110,8 +110,14 @@ function _initFirebase() {
     unidades = {};
     Object.entries(d).forEach(([id, u]) => { unidades[id] = { ...u, id }; });
 
+    console.log("🚖 Conductores recibidos desde Firebase:", unidades);
+    console.log("🔍 Total de unidades:", Object.keys(unidades).length);
+    
     const lib = Object.values(unidades).filter(u => u.status === "LIBRE" && u.online !== false);
     const ocp = Object.values(unidades).filter(u => u.status === "OCUPADO");
+    
+    console.log("✅ Taxis LIBRES:", lib.length, lib);
+    console.log("🔴 Taxis OCUPADOS:", ocp.length);
 
     document.getElementById("cnt-libres").textContent   = lib.length;
     document.getElementById("cnt-ocupados").textContent = ocp.length;
@@ -128,6 +134,7 @@ function _updCerca() {
     .filter(u => u.status === "LIBRE" && u.lat && u.lng &&
                  dist(myLat, myLng, u.lat, u.lng) < RADIO_CERCA)
     .length;
+  console.log("📍 Taxis cercanos (radio " + RADIO_CERCA + "m):", c);
   document.getElementById("cnt-cerca").textContent = c;
 }
 
@@ -172,7 +179,16 @@ window.solicitarTaxi = function() {
 
   const libres = Object.values(unidades)
     .filter(u => u.status === "LIBRE" && u.online !== false && u.lat && u.lng);
+console.log("🔎 Buscando taxis LIBRES...");
+  console.log("   Criterios: status='LIBRE', online=true, lat y lng válidos");
+  console.log("   Taxis LIBRES encontrados:", libres.length);
+  console.log("   Detalles:", libres);
 
+  if (!libres.length) { 
+    console.warn("⚠️ No hay taxis disponibles - mostrando mensaje al usuario");
+    showToast("😔 No hay taxis disponibles ahora"); 
+    return; 
+ 
   if (!libres.length) { showToast("😔 No hay taxis disponibles ahora"); return; }
 
   // Taxi más cercano al usuario
