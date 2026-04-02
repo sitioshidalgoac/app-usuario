@@ -1,0 +1,62 @@
+{
+  "name": "Sitios Hidalgo - Cliente",
+  "short_name": "SHidalgo",
+  "description": "Aplicación de solicitud de taxis Sitios Hidalgo con GPS en tiempo real",
+  "start_url": "/APP_USUARIO/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#FF6600",
+  "background_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "/APP_USUARIO/assets/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/APP_USUARIO/assets/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/APP_USUARIO/assets/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/APP_USUARIO/assets/badge-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "badge"
+    }
+  ],
+  "categories": ["transportation"],
+  "screenshots": [
+    {
+      "src": "/APP_USUARIO/assets/screenshot-1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/APP_USUARIO/assets/screenshot-2.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "share_target": {
+    "action": "/APP_USUARIO/index.html",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

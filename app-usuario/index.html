@@ -62,6 +62,64 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 .spinner{width:50px;height:50px;border:4px solid rgba(255,215,0,0.3);border-top:4px solid var(--dorado);border-radius:50%;animation:spin 1s linear infinite;margin:20px auto;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .btn-cancelar-busqueda{margin-top:20px;background:var(--rojo);color:#fff;border:none;border-radius:10px;padding:12px 30px;font-weight:bold;cursor:pointer;}
+
+/* ESTIMACIÓN DE LLEGADA */
+#eta-badge{position:fixed;bottom:120px;left:15px;background:var(--azul);border:2px solid var(--dorado);border-radius:14px;padding:15px 20px;color:#fff;font-weight:bold;display:none;z-index:400;box-shadow:0 4px 15px rgba(0,0,0,0.4);}
+#eta-badge.show{display:block;}
+#eta-badge .eta-taxi{color:var(--dorado);font-size:24px;margin-bottom:8px;}
+#eta-badge .eta-tiempo{font-size:24px;color:var(--dorado);}
+#eta-badge .eta-distancia{font-size:12px;color:#aaa;margin-top:5px;}
+
+/* MODAL CALIFICACIÓN */
+#modal-calificacion{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:center;justify-content:center;}
+#modal-calificacion.show{display:flex;}
+.modal-calificacion{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;padding:30px;text-align:center;width:85%;max-width:350px;}
+.modal-calificacion h2{color:var(--dorado);margin-bottom:20px;}
+.modal-calificacion .taxista-info{margin:15px 0;}
+.modal-calificacion .taxista-info img{width:60px;border-radius:50%;margin-bottom:8px;}
+.modal-calificacion .taxista-info p{color:#fff;font-size:13px;}
+.estrellas{display:flex;justify-content:center;gap:10px;margin:20px 0;}
+.estrella{font-size:40px;cursor:pointer;transition:transform 0.2s;opacity:0.3;}
+.estrella:hover,.estrella.selected{opacity:1;transform:scale(1.2);color:var(--dorado);}
+.textarea-comentario{width:100%;background:rgba(255,255,255,0.1);border:1px solid var(--dorado);border-radius:8px;padding:10px;color:#fff;font-size:12px;resize:none;margin:15px 0;}
+.textarea-comentario::placeholder{color:#aaa;}
+.btn-enviar-calificacion{background:var(--dorado);color:var(--azul);border:none;border-radius:8px;padding:12px 30px;font-weight:bold;cursor:pointer;margin-top:10px;}
+
+/* MODAL CHAT */
+#modal-chat{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:center;justify-content:center;}
+#modal-chat.show{display:flex;}
+.modal-chat{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;width:90%;height:70vh;max-width:400px;display:flex;flex-direction:column;}
+.chat-header{background:rgba(255,215,0,0.1);border-bottom:1px solid var(--dorado);padding:15px;border-radius:20px 20px 0 0;}
+.chat-header h2{color:var(--dorado);font-size:14px;}
+.chat-header p{color:#aaa;font-size:11px;}
+.chat-messages{flex:1;overflow-y:auto;padding:15px;}
+.chat-msg{margin:10px 0;padding:10px 12px;border-radius:10px;max-width:80%;font-size:13px;}
+.chat-msg.usuario{background:var(--dorado);color:var(--azul);margin-left:auto;border-radius:10px 0 10px 10px;}
+.chat-msg.conductor{background:rgba(255,255,255,0.2);color:#fff;border-radius:0 10px 10px 10px;}
+.chat-input-box{display:flex;gap:8px;padding:12px;border-top:1px solid var(--dorado);}
+.chat-input{flex:1;background:rgba(255,255,255,0.1);border:1px solid var(--dorado);border-radius:20px;padding:10px 15px;color:#fff;font-size:12px;}
+.chat-input::placeholder{color:#aaa;}
+.btn-send{background:var(--dorado);color:var(--azul);border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* MODAL MIS VIAJES */
+#modal-viajes{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:center;justify-content:center;}
+#modal-viajes.show{display:flex;}
+.modal-viajes{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;width:90%;max-height:70vh;overflow-y:auto;padding:20px;}
+.modal-viajes h2{color:var(--dorado);margin-bottom:15px;}
+.viaje-card{background:rgba(255,215,0,0.05);border:1px solid var(--dorado);border-radius:10px;padding:12px;margin:10px 0;}
+.viaje-card-header{display:flex;justify-content:space-between;margin-bottom:8px;}
+.viaje-card-date{color:#aaa;font-size:11px;}
+.viaje-card-calificacion{color:var(--dorado);font-weight:bold;}
+.viaje-card-info{font-size:12px;color:#fff;margin:5px 0;}
+.viaje-card-conductor{color:#aaa;font-size:11px;}
+.btn-cerrar-modal{position:absolute;top:15px;right:15px;background:var(--rojo);color:#fff;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:18px;}
+
+/* VIAJE ACTIVO - BADGE SUPERIOR */
+#viaje-activo{position:fixed;top:52px;left:0;right:0;background:rgba(255,215,0,0.1);border-bottom:2px solid var(--dorado);padding:12px 15px;display:none;z-index:100;}
+#viaje-activo.show{display:block;}
+.viaje-activo-info{color:#fff;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+.viaje-activo-info .conductor-nombre{color:var(--dorado);font-weight:bold;}
+.btn-viaje-action{background:var(--dorado);color:var(--azul);border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;margin-left:10px;}
 </style>
 </head>
 <body>
@@ -88,7 +146,7 @@ header span{font-weight:bold;font-size:14px;flex:1;}
     <button class="btn-pedir" onclick="pedirTaxi()">
       <i class="fas fa-taxi"></i> SOLICITAR VIAJE
     </button>
-    <button class="btn-sos" onclick="activarSOS()">
+    <button class="btn-sos" onclick="activarSOSMejorado()">
       <i class="fas fa-shield-alt"></i> SOS
     </button>
   </div>
@@ -102,12 +160,33 @@ header span{font-weight:bold;font-size:14px;flex:1;}
     <h2>SITIO HIDALGO</h2>
     <p>Tradición y Seguridad</p>
   </div>
-  <div class="menu-item"><i class="fas fa-user"></i> Perfil</div>
-  <div class="menu-item"><i class="fas fa-history"></i> Mis Viajes</div>
-  <div class="menu-item"><i class="fas fa-cog"></i> Configuración</div>
-  <div class="menu-item"><i class="fas fa-phone"></i> Contacto</div>
-  <div class="menu-item"><i class="fas fa-info-circle"></i> Nosotros</div>
+  <div class="menu-item" onclick="mostrarPerfil()"><i class="fas fa-user"></i> Perfil</div>
+  <div class="menu-item" onclick="mostrarMisViajes()"><i class="fas fa-history"></i> Mis Viajes</div>
+  <div class="menu-item" onclick="mostrarConfiguracion()"><i class="fas fa-cog"></i> Configuración</div>
+  <div class="menu-item" onclick="mostrarContacto()"><i class="fas fa-phone"></i> Contacto</div>
+  <div class="menu-item" onclick="mostrarNosotros()"><i class="fas fa-info-circle"></i> Nosotros</div>
   <div class="menu-item" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</div>
+</div>
+
+<!-- VIAJE ACTIVO - BADGE SUPERIOR -->
+<div id="viaje-activo">
+  <div class="viaje-activo-info">
+    <div>
+      <span class="conductor-nombre" id="viaje-conductor-nombre">Taxi en camino</span>
+      <br><small id="viaje-tiempo-llegada">Calculando...</small>
+    </div>
+    <div>
+      <button class="btn-viaje-action" onclick="abrirChat()">💬 Chat</button>
+      <button class="btn-viaje-action" onclick="abrirCompartirWhatsApp()">📱 Compartir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ESTIMACIÓN LLEGADA -->
+<div id="eta-badge">
+  <div class="eta-taxi">🚕</div>
+  <div class="eta-tiempo"><span id="eta-minutos">--</span> min</div>
+  <div class="eta-distancia"><span id="eta-metros">--</span> m</div>
 </div>
 
 <!-- MODAL BUSCANDO -->
@@ -118,6 +197,44 @@ header span{font-weight:bold;font-size:14px;flex:1;}
     <div class="spinner"></div>
     <p>Conectando con conductores disponibles cerca de tu ubicación</p>
     <button class="btn-cancelar-busqueda" onclick="cancelarBusqueda()">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL CALIFICACIÓN -->
+<div id="modal-calificacion">
+  <div class="modal-calificacion">
+    <h2>¿Cómo fue tu viaje?</h2>
+    <div class="taxista-info" id="taxista-info-container">
+      <img id="taxista-foto" src="assets/logo.png" onerror="this.style.display='none'">
+      <p id="taxista-nombre">Conductor</p>
+    </div>
+    <div class="estrellas" id="estrellas-container"></div>
+    <textarea class="textarea-comentario" id="comentario-viaje" placeholder="Comentario (opcional)"></textarea>
+    <button class="btn-enviar-calificacion" onclick="enviarCalificacion()">Enviar Calificación</button>
+  </div>
+</div>
+
+<!-- MODAL CHAT -->
+<div id="modal-chat">
+  <div class="modal-chat">
+    <div class="chat-header">
+      <h2>💬 Chat con conductor</h2>
+      <p id="chat-conductor-nombre">Conductor</p>
+    </div>
+    <div class="chat-messages" id="chat-mensajes"></div>
+    <div class="chat-input-box">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensajeChat()">
+      <button class="btn-send" onclick="enviarMensajeChat()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MIS VIAJES -->
+<div id="modal-viajes">
+  <div class="modal-viajes">
+    <button class="btn-cerrar-modal" onclick="cerrarModalViajes()">✕</button>
+    <h2>📋 Mis Viajes</h2>
+    <div id="viajes-lista"></div>
   </div>
 </div>
 
@@ -145,8 +262,37 @@ const rtdb = firebase.database();
 const auth = firebase.auth();
 
 // VARIABLES
-let map, marcadoresTaxis = {}, unsubscribeViaje = null;
+let map, marcadoresTaxis = {}, unsubscribeViaje = null, unsubViajeActivo = null;
+let viajeActualId = null, viajeActualData = null, miUbicacion = null;
+let usuarioId = null, estrellaSeleccionada = 0;
+let watchIdGPS = null, intervaloETA = null;
 const CENTRO = [17.4575, -97.2273];
+
+// UTILIDADES
+function vibrar(ms = 200) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+  const R = 6371; // Radio de tierra en km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c * 1000; // metros
+}
+
+function cargarHistorial() {
+  return JSON.parse(localStorage.getItem('viajes_historial') || '[]');
+}
+
+function guardarHistorial(viaje) {
+  const historial = cargarHistorial();
+  historial.unshift(viaje);
+  localStorage.setItem('viajes_historial', JSON.stringify(historial.slice(0, 50)));
+}
 
 // SPLASH → APP
 setTimeout(() => {
@@ -176,7 +322,7 @@ function iconoTaxi() {
   });
 }
 
-// ESCUCHAR TAXIS EN RTDB
+// ESCUCHAR TAXIS EN RTDB + CALCULAR ETA
 function escucharTaxis() {
   rtdb.ref('conductores').on('value', snap => {
     const data = snap.val() || {};
@@ -188,6 +334,8 @@ function escucharTaxis() {
       }
     });
     // Agregar/mover taxis activos
+    let distanciaMinima = Infinity;
+    let taxiMasCercano = null;
     Object.entries(data).forEach(([id, c]) => {
       if (!c.lat || !c.lng || c.estado === 'inactivo') return;
       if (marcadoresTaxis[id]) {
@@ -197,16 +345,38 @@ function escucharTaxis() {
           .bindPopup(`<b>${id}</b><br>Disponible`)
           .addTo(map);
       }
+      
+      // Calcular distancia si tenemos ubicación del usuario
+      if (miUbicacion && !viajeActualId) {
+        const dist = calcularDistancia(miUbicacion.lat, miUbicacion.lng, c.lat, c.lng);
+        if (dist < distanciaMinima) {
+          distanciaMinima = dist;
+          taxiMasCercano = { id, lat: c.lat, lng: c.lng, dist };
+        }
+      }
     });
+
+    // Mostrar ETA del taxi más cercano
+    if (taxiMasCercano && miUbicacion && !viajeActualId) {
+      const minutos = Math.max(1, Math.round(taxiMasCercano.dist / 1000 / 0.667)); // ~40 km/h promedio
+      document.getElementById('eta-minutos').textContent = minutos;
+      document.getElementById('eta-metros').textContent = Math.round(taxiMasCercano.dist);
+      document.getElementById('eta-badge').classList.add('show');
+    } else if (!viajeActualId) {
+      document.getElementById('eta-badge').classList.remove('show');
+    }
   });
 }
 
-// PEDIR TAXI
+// PEDIR TAXI + CAPTURAR GPS
 function pedirTaxi() {
   document.getElementById('modal-buscando').classList.add('show');
   navigator.geolocation.getCurrentPosition(pos => {
     const { latitude: lat, longitude: lng } = pos.coords;
+    miUbicacion = { lat, lng };
     const uid = auth.currentUser?.uid || 'anonimo_' + Date.now();
+    usuarioId = uid;
+    
     db.collection('solicitudes').add({
       usuarioId: uid,
       lat, lng,
@@ -216,16 +386,71 @@ function pedirTaxi() {
   }, () => alert('Activa tu GPS para solicitar un taxi'));
 }
 
-// ESCUCHAR RESPUESTA DEL CONDUCTOR
+// ESCUCHAR RESPUESTA DEL CONDUCTOR + MONITOREO DE VIAJE
 function escucharRespuesta(solicitudId) {
+  viajeActualId = solicitudId;
   unsubscribeViaje = db.collection('solicitudes').doc(solicitudId)
     .onSnapshot(snap => {
       const d = snap.data();
       if (d?.estado === 'aceptada') {
         document.getElementById('modal-buscando').classList.remove('show');
+        viajeActualData = d;
+        mostrarViajeActivo(d);
+        monitorizarETAViaje(d);
         alert(`✅ Conductor asignado: ${d.conductorId || 'En camino'}`);
+      } else if (d?.estado === 'completado') {
+        detenerMonitoreoViaje();
+        mostrarCalificacion(d);
+        guardarHistorial({
+          fecha: new Date().toLocaleDateString('es-MX'),
+          hora: new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute: '2-digit'}),
+          conductor: d.conductorId,
+          destino: d.destino || 'Destino desconocido',
+          distancia: d.distancia || '--',
+          costo: d.costo || '--'
+        });
+      } else if (d?.estado === 'cancelada') {
+        detenerMonitoreoViaje();
+        alert('❌ El viaje fue cancelado');
       }
     });
+}
+
+// MONITORIZAR ETA DEL VIAJE
+function monitorizarETAViaje(viaje) {
+  document.getElementById('eta-badge').classList.remove('show');
+  if (intervaloETA) clearInterval(intervaloETA);
+  
+  // Actualizar cada 5 segundos
+  intervaloETA = setInterval(() => {
+    if (viajeActualData && viajeActualData.conductor_lat && viajeActualData.conductor_lng && miUbicacion) {
+      const dist = calcularDistancia(miUbicacion.lat, miUbicacion.lng, 
+                                     viajeActualData.conductor_lat, 
+                                     viajeActualData.conductor_lng);
+      const minutos = Math.max(1, Math.round(dist / 1000 / 0.667));
+      document.getElementById('eta-minutos').textContent = minutos;
+      document.getElementById('eta-metros').textContent = Math.round(dist);
+      document.getElementById('eta-badge').classList.add('show');
+    }
+  }, 5000);
+}
+
+// MOSTRAR VIAJE ACTIVO
+function mostrarViajeActivo(viaje) {
+  document.getElementById('viaje-conductor-nombre').textContent = '🚕 ' + (viaje.conductorId || 'Taxi');
+  document.getElementById('viaje-tiempo-llegada').textContent = 'En camino...';
+  document.getElementById('viaje-activo').classList.add('show');
+}
+
+// DETENER MONITOREO DE VIAJE
+function detenerMonitoreoViaje() {
+  viajeActualId = null;
+  viajeActualData = null;
+  if (intervaloETA) { clearInterval(intervaloETA); intervaloETA = null; }
+  if (unsubscribeViaje) { unsubscribeViaje(); unsubscribeViaje = null; }
+  if (unsubViajeActivo) { unsubViajeActivo(); unsubViajeActivo = null; }
+  document.getElementById('viaje-activo').classList.remove('show');
+  document.getElementById('eta-badge').classList.remove('show');
 }
 
 // CANCELAR BÚSQUEDA
@@ -234,17 +459,184 @@ function cancelarBusqueda() {
   if (unsubscribeViaje) { unsubscribeViaje(); unsubscribeViaje = null; }
 }
 
-// SOS
-function activarSOS() {
+// SOS MEJORADO - CON GPS EXACTO Y VIBRACIÓN
+function activarSOSMejorado() {
   if (confirm('¿Activar alerta SOS de emergencia?')) {
-    const uid = auth.currentUser?.uid || 'anonimo';
-    db.collection('sos').add({
-      usuarioId: uid,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      activo: true
-    });
-    alert('🆘 Alerta SOS enviada. El equipo fue notificado.');
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+      const uid = auth.currentUser?.uid || 'anonimo_' + Date.now();
+      
+      // Guardar SOS en Firebase con ubicación exacta
+      db.collection('sos').add({
+        usuarioId: uid,
+        lat, lng,
+        accuracy,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        activo: true,
+        tipo: 'EMERGENCIA'
+      });
+      
+      // Vibración de confirmación
+      vibrar([200, 100, 200, 100, 500]);
+      alert('🆘 Alerta SOS enviada. Tu ubicación exacta fue compartida.');
+      console.log('SOS: ' + lat + ', ' + lng + ' ± ' + accuracy.toFixed(0) + 'm');
+    }, () => alert('⚠️ No pudimos obtener tu GPS. Intenta de nuevo.'));
   }
+}
+
+// CALIFICACIÓN POST-VIAJE
+function mostrarCalificacion(datosViaje) {
+  estrellaSeleccionada = 0;
+  
+  // Generar estrellas del 1 al 5
+  let estrellas = '';
+  for (let i = 1; i <= 5; i++) {
+    estrellas += '<span class="estrella" data-valor="' + i + '" onclick="seleccionarEstrella(' + i + ')">⭐</span>';
+  }
+  
+  document.getElementById('estrellas-container').innerHTML = estrellas;
+  document.getElementById('taxista-nombre').textContent = datosViaje.conductorId || 'Conductor';
+  document.getElementById('comentario-viaje').value = '';
+  document.getElementById('modal-calificacion').classList.add('show');
+}
+
+function seleccionarEstrella(valor) {
+  estrellaSeleccionada = valor;
+  document.querySelectorAll('.estrella').forEach((e, idx) => {
+    if (idx < valor) {
+      e.classList.add('selected');
+    } else {
+      e.classList.remove('selected');
+    }
+  });
+}
+
+function enviarCalificacion() {
+  if (estrellaSeleccionada === 0) {
+    alert('Por favor selecciona una calificación');
+    return;
+  }
+  
+  const comentario = document.getElementById('comentario-viaje').value;
+  db.collection('calificaciones').add({
+    viajeId: viajeActualId,
+    conductorId: viajeActualData?.conductorId,
+    usuarioId: usuarioId,
+    calificacion: estrellaSeleccionada,
+    comentario: comentario,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    alert('✅ Gracias por tu calificación');
+    document.getElementById('modal-calificacion').classList.remove('show');
+    vibrar(100);
+  });
+}
+
+// MIS VIAJES - HISTORIAL
+function mostrarMisViajes() {
+  cerrarMenu();
+  const historial = cargarHistorial();
+  let html = '';
+  
+  if (historial.length === 0) {
+    html = '<p style="color:#aaa;text-align:center;padding:20px;">No tienes viajes registrados</p>';
+  } else {
+    historial.forEach(v => {
+      html += '<div class="viaje-card">' +
+              '<div class="viaje-card-header">' +
+              '<span class="viaje-card-date">' + v.fecha + ' ' + v.hora + '</span>' +
+              '<span class="viaje-card-calificacion">' + '⭐'.repeat(v.calificacion || 0) + '</span>' +
+              '</div>' +
+              '<div class="viaje-card-info">📍 ' + v.destino + '</div>' +
+              '<div class="viaje-card-info">🚕 ' + v.conductor + '</div>' +
+              '<div class="viaje-card-conductor">' + v.distancia + ' km | $' + v.costo + '</div>' +
+              '</div>';
+    });
+  }
+  
+  document.getElementById('viajes-lista').innerHTML = html;
+  document.getElementById('modal-viajes').classList.add('show');
+}
+
+function cerrarModalViajes() {
+  document.getElementById('modal-viajes').classList.remove('show');
+}
+
+// CHAT CON CONDUCTOR
+function abrirChat() {
+  if (!viajeActualId) {
+    alert('No hay viaje activo');
+    return;
+  }
+  
+  document.getElementById('chat-conductor-nombre').textContent = viajeActualData?.conductorId || 'Conductor';
+  document.getElementById('chat-mensajes').innerHTML = '';
+  document.getElementById('chat-input').value = '';
+  document.getElementById('modal-chat').classList.add('show');
+  
+  // Escuchar mensajes en tiempo real
+  db.collection('chats').where('viajeId', '==', viajeActualId)
+    .orderBy('timestamp', 'asc')
+    .onSnapshot(snap => {
+      let html = '';
+      snap.forEach(doc => {
+        const msg = doc.data();
+        const esUsuario = msg.tipo === 'usuario';
+        html += '<div class="chat-msg ' + (esUsuario ? 'usuario' : 'conductor') + '"><b>' + msg.remitente + ':</b> ' + msg.texto + '</div>';
+      });
+      document.getElementById('chat-mensajes').innerHTML = html;
+      document.getElementById('chat-mensajes').scrollTop = document.getElementById('chat-mensajes').scrollHeight;
+    });
+}
+
+function enviarMensajeChat() {
+  const texto = document.getElementById('chat-input').value.trim();
+  if (!texto || !viajeActualId) return;
+  
+  db.collection('chats').add({
+    viajeId: viajeActualId,
+    tipo: 'usuario',
+    remitente: 'Tú',
+    texto: texto,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  
+  document.getElementById('chat-input').value = '';
+}
+
+// COMPARTIR VIAJE POR WHATSAPP
+function abrirCompartirWhatsApp() {
+  if (!miUbicacion) {
+    alert('Ubicación no disponible');
+    return;
+  }
+  
+  const urlMaps = 'https://maps.google.com/?q=' + miUbicacion.lat + ',' + miUbicacion.lng;
+  const mensaje = encodeURIComponent('Mi taxi está en: ' + urlMaps + '\n\n🚕 Conductor: ' + (viajeActualData?.conductorId || 'Tu taxi'));
+  const urlWhatsApp = 'https://wa.me/?text=' + mensaje;
+  
+  window.open(urlWhatsApp, '_blank');
+}
+
+// FUNCIONES DE MENÚ
+function mostrarPerfil() {
+  cerrarMenu();
+  alert('📱 Perfil:\n\nUsuario ID: ' + usuarioId + '\n\nFunción en desarrollo');
+}
+
+function mostrarConfiguracion() {
+  cerrarMenu();
+  alert('⚙️ Configuración\n\nFunción en desarrollo');
+}
+
+function mostrarContacto() {
+  cerrarMenu();
+  alert('📞 Contacto\n\nSitio Hidalgo\nNochixtlán, Oaxaca\nTel: +52 123 456 7890');
+}
+
+function mostrarNosotros() {
+  cerrarMenu();
+  alert('ℹ️ SITIO HIDALGO\n\nTradición y Seguridad\n\n© 2026 Todos los derechos reservados');
 }
 
 // MENÚ
