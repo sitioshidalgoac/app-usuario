@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
-:root{--azul:#1a237e;--dorado:#FFD700;--rojo:#d32f2f;}
+:root{--azul:#1a237e;--dorado:#FFD700;--dorado-oscuro:#DAA520;--rojo:#d32f2f;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;background:var(--azul);}
 
@@ -18,8 +18,8 @@ body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;backgrou
 #splash h1{color:var(--dorado);font-size:26px;letter-spacing:2px;text-align:center;}
 #splash p{color:#fff;font-size:11px;letter-spacing:4px;margin-top:8px;}
 #splash .copy{position:absolute;bottom:30px;color:rgba(255,255,255,0.5);font-size:11px;}
-.taxi-icon{font-size:28px;margin-top:20px;animation:bounce 1s infinite alternate;}
-@keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-10px);}}
+.taxi-icon{font-size:28px;margin-top:20px;animation:slide 1.4s ease-in-out infinite;}
+@keyframes slide{0%{transform:translateX(-2px);}50%{transform:translateX(2px);}100%{transform:translateX(-2px);}}
 
 /* APP */
 #app{display:none !important;flex-direction:column;height:100vh;}
@@ -29,15 +29,19 @@ body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;backgrou
 header{background:var(--azul);color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--dorado);z-index:100;flex-shrink:0;}
 header img,header svg{height:32px;width:32px;border-radius:50%;}
 header span{font-weight:bold;font-size:14px;flex:1;}
+#taxi-count{font-size:13px;font-weight:bold;color:#ffffff;}
+#taxi-count.green{color:#4caf50;}
+#taxi-count.orange{color:#DAA520;}
+#taxi-count.red{color:#d32f2f;}
 .menu-btn{background:none;border:none;color:var(--dorado);font-size:20px;cursor:pointer;}
 
 /* MAPA */
 #map{flex:1;width:100%;z-index:1;}
 
 /* BOTONES INFERIORES */
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:15px;display:flex;gap:10px;z-index:500;background:linear-gradient(transparent,rgba(0,0,0,0.7));}
-.btn-pedir{flex:1;background:var(--azul);color:#fff;border:2px solid var(--dorado);border-radius:14px;padding:16px;font-size:16px;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.4);}
-.btn-sos{width:80px;background:var(--rojo);color:#fff;border:none;border-radius:14px;padding:16px;font-size:13px;font-weight:bold;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 4px 15px rgba(0,0,0,0.4);}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:15px;display:flex;gap:10px;z-index:500;background:linear-gradient(transparent,rgba(26,35,126,0.92));}
+.btn-pedir{flex:1;background:var(--azul);color:#fff;border:2px solid var(--dorado);border-radius:16px;padding:20px;font-size:18px;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;box-shadow:0 4px 15px rgba(26,35,126,0.35);}
+.btn-sos{width:90px;background:var(--rojo);color:#ffffff;border:none;border-radius:16px;padding:18px;font-size:15px;font-weight:bold;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 15px rgba(26,35,126,0.35);}
 
 /* MENÚ LATERAL */
 #menu{position:fixed;top:0;left:-290px;width:280px;height:100%;background:var(--azul);z-index:2000;transition:left 0.3s;border-right:2px solid var(--dorado);display:flex;flex-direction:column;}
@@ -45,15 +49,15 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 .menu-header{padding:40px 20px 20px;text-align:center;border-bottom:1px solid var(--dorado);}
 .menu-header img,.menu-header svg{width:100px;height:100px;border-radius:50%;border:2px solid var(--dorado);}
 .menu-header h2{color:var(--dorado);margin-top:10px;font-size:16px;}
-.menu-header p{color:#aaa;font-size:11px;}
+.menu-header p{color:#ffffff;font-size:11px;}
 .menu-item{padding:18px 25px;color:#fff;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:15px;cursor:pointer;transition:background 0.2s;}
 .menu-item:hover{background:rgba(255,215,0,0.1);}
 .menu-item i{color:var(--dorado);width:20px;}
-#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1999;}
+#overlay{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.65);z-index:1999;}
 #overlay.show{display:block;}
 
 /* MODAL BUSCANDO */
-#modal-buscando{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:center;justify-content:center;}
+#modal-buscando{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.92);z-index:3000;align-items:center;justify-content:center;}
 #modal-buscando.show{display:flex;}
 .modal-box{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;padding:40px;text-align:center;width:85%;}
 .modal-box img{width:80px;border-radius:50%;margin-bottom:15px;}
@@ -61,17 +65,17 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 .modal-box p{color:#fff;font-size:13px;}
 .spinner{width:50px;height:50px;border:4px solid rgba(255,215,0,0.3);border-top:4px solid var(--dorado);border-radius:50%;animation:spin 1s linear infinite;margin:20px auto;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.btn-cancelar-busqueda{margin-top:20px;background:var(--rojo);color:#fff;border:none;border-radius:10px;padding:12px 30px;font-weight:bold;cursor:pointer;}
+.btn-cancelar-busqueda{margin-top:20px;background:var(--rojo);color:#ffffff;border:none;border-radius:16px;padding:12px 30px;font-weight:bold;cursor:pointer;}
 
 /* ESTIMACIÓN DE LLEGADA */
-#eta-badge{position:fixed;bottom:120px;left:15px;background:var(--azul);border:2px solid var(--dorado);border-radius:14px;padding:15px 20px;color:#fff;font-weight:bold;display:none;z-index:400;box-shadow:0 4px 15px rgba(0,0,0,0.4);}
+#eta-badge{position:fixed;bottom:120px;left:15px;background:var(--azul);border:2px solid var(--dorado);border-radius:16px;padding:15px 20px;color:#ffffff;font-weight:bold;display:none;z-index:400;box-shadow:0 4px 15px rgba(26,35,126,0.35);}
 #eta-badge.show{display:block;}
 #eta-badge .eta-taxi{color:var(--dorado);font-size:24px;margin-bottom:8px;}
 #eta-badge .eta-tiempo{font-size:24px;color:var(--dorado);}
-#eta-badge .eta-distancia{font-size:12px;color:#aaa;margin-top:5px;}
+#eta-badge .eta-distancia{font-size:12px;color:rgba(255,255,255,0.7);margin-top:5px;}
 
 /* MODAL CALIFICACIÓN */
-#modal-calificacion{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:center;justify-content:center;}
+#modal-calificacion{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.92);z-index:3000;align-items:center;justify-content:center;}
 #modal-calificacion.show{display:flex;}
 .modal-calificacion{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;padding:30px;text-align:center;width:85%;max-width:350px;}
 .modal-calificacion h2{color:var(--dorado);margin-bottom:20px;}
@@ -81,37 +85,37 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 .estrellas{display:flex;justify-content:center;gap:10px;margin:20px 0;}
 .estrella{font-size:40px;cursor:pointer;transition:transform 0.2s;opacity:0.3;}
 .estrella:hover,.estrella.selected{opacity:1;transform:scale(1.2);color:var(--dorado);}
-.textarea-comentario{width:100%;background:rgba(255,255,255,0.1);border:1px solid var(--dorado);border-radius:8px;padding:10px;color:#fff;font-size:12px;resize:none;margin:15px 0;}
-.textarea-comentario::placeholder{color:#aaa;}
-.btn-enviar-calificacion{background:var(--dorado);color:var(--azul);border:none;border-radius:8px;padding:12px 30px;font-weight:bold;cursor:pointer;margin-top:10px;}
+.textarea-comentario{width:100%;background:rgba(255,255,255,0.1);border:1px solid var(--dorado);border-radius:16px;padding:10px;color:#ffffff;font-size:12px;resize:none;margin:15px 0;}
+.textarea-comentario::placeholder{color:rgba(255,255,255,0.7);}
+.btn-enviar-calificacion{background:var(--dorado);color:var(--azul);border:none;border-radius:16px;padding:12px 30px;font-weight:bold;cursor:pointer;margin-top:10px;}
 
 /* MODAL CHAT */
-#modal-chat{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:center;justify-content:center;}
+#modal-chat{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.92);z-index:3000;align-items:center;justify-content:center;}
 #modal-chat.show{display:flex;}
 .modal-chat{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;width:90%;height:70vh;max-width:400px;display:flex;flex-direction:column;}
 .chat-header{background:rgba(255,215,0,0.1);border-bottom:1px solid var(--dorado);padding:15px;border-radius:20px 20px 0 0;}
 .chat-header h2{color:var(--dorado);font-size:14px;}
-.chat-header p{color:#aaa;font-size:11px;}
+.chat-header p{color:rgba(255,255,255,0.7);font-size:11px;}
 .chat-messages{flex:1;overflow-y:auto;padding:15px;}
 .chat-msg{margin:10px 0;padding:10px 12px;border-radius:10px;max-width:80%;font-size:13px;}
 .chat-msg.usuario{background:var(--dorado);color:var(--azul);margin-left:auto;border-radius:10px 0 10px 10px;}
 .chat-msg.conductor{background:rgba(255,255,255,0.2);color:#fff;border-radius:0 10px 10px 10px;}
 .chat-input-box{display:flex;gap:8px;padding:12px;border-top:1px solid var(--dorado);}
 .chat-input{flex:1;background:rgba(255,255,255,0.1);border:1px solid var(--dorado);border-radius:20px;padding:10px 15px;color:#fff;font-size:12px;}
-.chat-input::placeholder{color:#aaa;}
+.chat-input::placeholder{color:rgba(255,255,255,0.7);}
 .btn-send{background:var(--dorado);color:var(--azul);border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
 /* MODAL MIS VIAJES */
-#modal-viajes{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:center;justify-content:center;}
+#modal-viajes{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.92);z-index:3000;align-items:center;justify-content:center;}
 #modal-viajes.show{display:flex;}
 .modal-viajes{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;width:90%;max-height:70vh;overflow-y:auto;padding:20px;}
 .modal-viajes h2{color:var(--dorado);margin-bottom:15px;}
 .viaje-card{background:rgba(255,215,0,0.05);border:1px solid var(--dorado);border-radius:10px;padding:12px;margin:10px 0;}
 .viaje-card-header{display:flex;justify-content:space-between;margin-bottom:8px;}
-.viaje-card-date{color:#aaa;font-size:11px;}
+.viaje-card-date{color:rgba(255,255,255,0.7);font-size:11px;}
 .viaje-card-calificacion{color:var(--dorado);font-weight:bold;}
 .viaje-card-info{font-size:12px;color:#fff;margin:5px 0;}
-.viaje-card-conductor{color:#aaa;font-size:11px;}
+.viaje-card-conductor{color:rgba(255,255,255,0.7);font-size:11px;}
 .btn-cerrar-modal{position:absolute;top:15px;right:15px;background:var(--rojo);color:#fff;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:18px;}
 
 /* VIAJE ACTIVO - BADGE SUPERIOR */
@@ -119,22 +123,58 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 #viaje-activo.show{display:block;}
 .viaje-activo-info{color:#fff;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
 .viaje-activo-info .conductor-nombre{color:var(--dorado);font-weight:bold;}
-.btn-viaje-action{background:var(--dorado);color:var(--azul);border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;margin-left:10px;}
+.btn-viaje-action{background:var(--dorado);color:var(--azul);border:none;border-radius:16px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;margin-left:10px;}
+
+#login-screen{position:fixed;inset:0;background:var(--azul);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;}
+#login-card{background:rgba(255,255,255,0.05);border:2px solid var(--dorado);border-radius:24px;padding:30px;width:100%;max-width:420px;text-align:center;box-shadow:0 12px 40px rgba(26,35,126,0.35);}
+#login-card h1{color:var(--dorado);font-size:28px;margin-bottom:10px;}
+#login-card p{color:rgba(255,255,255,0.8);margin-bottom:25px;font-size:14px;}
+#login-card .login-logo{margin:0 auto 20px;width:160px;height:160px;}
+#login-card input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.35);border-radius:16px;padding:16px 18px;color:#ffffff;font-size:15px;margin-bottom:15px;}
+#login-card input::placeholder{color:rgba(255,255,255,0.7);}
+#login-card .btn-primary{width:100%;background:var(--dorado);color:var(--azul);border:none;border-radius:16px;padding:18px;font-size:18px;font-weight:bold;cursor:pointer;margin-bottom:12px;}
+#login-card .btn-link{background:none;border:none;color:var(--dorado);font-size:14px;cursor:pointer;text-decoration:underline;}
+#login-card small{color:rgba(255,255,255,0.6);display:block;margin-top:12px;}
 </style>
 </head>
 <body>
 
 <!-- SPLASH -->
 <div id="splash">
-  <svg width="200" height="200" viewBox="0 0 200 200">
-    <circle cx="100" cy="100" r="95" fill="#1a237e" stroke="#FFD700" stroke-width="5"/>
-    <text x="100" y="85" text-anchor="middle" fill="#FFD700" font-size="16" font-family="Arial, sans-serif" font-weight="bold">SITIO HIDALGO</text>
-    <text x="100" y="105" text-anchor="middle" fill="#FFD700" font-size="10" font-family="Arial, sans-serif">ASUNCIÓN NOCHIXTLÁN A.C.</text>
+  <svg viewBox="0 0 200 200" width="180" height="180">
+    <circle cx="100" cy="100" r="98" fill="#DAA520"/>
+    <circle cx="100" cy="100" r="85" fill="#1a237e"/>
+    <text x="100" y="60" text-anchor="middle" fill="#FFD700" font-size="13" font-weight="bold" font-family="Arial">SITIOS HIDALGO A.C.</text>
+    <text x="100" y="115" text-anchor="middle" fill="#FFD700" font-size="50">🏇</text>
+    <text x="100" y="145" text-anchor="middle" fill="#FFD700" font-size="10" font-family="Arial">NOCHIXTLÁN, OAXACA</text>
+    <text x="100" y="165" text-anchor="middle" fill="#DAA520" font-size="10">★ ★ ★ ★ ★</text>
   </svg>
   <h1>SITIO HIDALGO</h1>
-  <p>TRADICIÓN Y SEGURIDAD</p>
+  <p>TRADICCIÓN Y SEGURIDAD</p>
   <div class="taxi-icon">🚕</div>
   <span class="copy">© SITIO HIDALGO 2026</span>
+</div>
+
+<div id="login-screen">
+  <div id="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 200 200" width="160" height="160">
+        <circle cx="100" cy="100" r="98" fill="#DAA520"/>
+        <circle cx="100" cy="100" r="85" fill="#1a237e"/>
+        <text x="100" y="60" text-anchor="middle" fill="#FFD700" font-size="13" font-weight="bold" font-family="Arial">SITIOS HIDALGO A.C.</text>
+        <text x="100" y="115" text-anchor="middle" fill="#FFD700" font-size="50">🏇</text>
+        <text x="100" y="145" text-anchor="middle" fill="#FFD700" font-size="10" font-family="Arial">NOCHIXTLÁN, OAXACA</text>
+        <text x="100" y="165" text-anchor="middle" fill="#DAA520" font-size="10">★ ★ ★ ★ ★</text>
+      </svg>
+    </div>
+    <h1>Bienvenido</h1>
+    <p>Registra tu nombre y teléfono para iniciar la mejor experiencia de viaje.</p>
+    <input id="login-name" type="text" placeholder="Nombre completo" />
+    <input id="login-phone" type="tel" placeholder="Teléfono" />
+    <button class="btn-primary" onclick="iniciarSesion()">CONTINUAR</button>
+    <button class="btn-link" onclick="entrarSinRegistro()">Entrar sin registro</button>
+    <small>Tu información mejora el seguimiento de tu taxi.</small>
+  </div>
 </div>
 
 <!-- APP PRINCIPAL -->
@@ -143,7 +183,8 @@ header span{font-weight:bold;font-size:14px;flex:1;}
     <button class="menu-btn" onclick="abrirMenu()"><i class="fas fa-bars"></i></button>
     <svg width="32" height="32" viewBox="0 0 180 180"><circle cx="90" cy="90" r="88" fill="#FFD700" stroke="#DAA520" stroke-width="3"/><circle cx="90" cy="90" r="75" fill="#1a237e"/><text x="90" y="55" text-anchor="middle" fill="#FFD700" font-size="13" font-weight="bold" font-family="Arial">SITIO HIDALGO</text><text x="90" y="72" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">ASUNCIÓN NOCHIXTLÁN A.C.</text><text x="90" y="105" text-anchor="middle" fill="#FFD700" font-size="28">🚕</text><text x="90" y="130" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">★ ★ ★</text></svg>
     <span>NOCHIXTLÁN, OAXACA</span>
-    <i class="fas fa-circle" id="statusDot" style="color:#4caf50;font-size:10px;"></i>
+    <span id="taxi-count">🚕 0 taxis disponibles</span>
+    <i class="fas fa-circle" id="statusDot" style="color:#DAA520;font-size:10px;"></i>
   </header>
   <div id="map"></div>
   <div class="bottom-bar">
@@ -277,8 +318,49 @@ try {
 let map, marcadoresTaxis = {}, unsubscribeViaje = null, unsubViajeActivo = null;
 let viajeActualId = null, viajeActualData = null, miUbicacion = null;
 let usuarioId = null, estrellaSeleccionada = 0;
-let watchIdGPS = null, intervaloETA = null;
+let watchIdGPS = null, intervaloETA = null, rutaViaje = null, notificacionLlegandoMostrada = false, taxiCount = 0;
 const CENTRO = [17.4575, -97.2273];
+
+// NOTIFICACIONES
+function solicitarPermisoNotificaciones() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function mostrarNotificacion(titulo, cuerpo) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(titulo, { body: cuerpo });
+  } catch (e) {
+    console.warn('Notificación no disponible:', e);
+  }
+}
+
+function actualizarConteoTaxis(cantidad) {
+  taxiCount = cantidad;
+  const display = document.getElementById('taxi-count');
+  if (!display) return;
+  display.textContent = `🚕 ${cantidad} taxis disponibles`;
+  display.classList.toggle('green', cantidad > 3);
+  display.classList.toggle('orange', cantidad > 0 && cantidad <= 3);
+  display.classList.toggle('red', cantidad === 0);
+  const status = document.getElementById('statusDot');
+  if (status) {
+    status.style.color = cantidad === 0 ? '#d32f2f' : cantidad <= 3 ? '#DAA520' : '#4caf50';
+  }
+}
+
+function actualizarRuta() {
+  if (!map || !miUbicacion || !viajeActualData || !viajeActualData.conductor_lat || !viajeActualData.conductor_lng) return;
+  const puntos = [[miUbicacion.lat, miUbicacion.lng], [viajeActualData.conductor_lat, viajeActualData.conductor_lng]];
+  if (rutaViaje) {
+    rutaViaje.setLatLngs(puntos);
+  } else {
+    rutaViaje = L.polyline(puntos, { color: '#FFD700', weight: 5, opacity: 0.9 }).addTo(map);
+  }
+}
 
 // UTILIDADES
 function vibrar(ms = 200) {
@@ -321,6 +403,7 @@ setTimeout(() => {
             app.classList.add('show');
             console.log('✅ App mostrada');
           }
+          initLogin();
           // Inicializar mapa sin esperar Firebase
           try {
             if (typeof initMapa === 'function') {
@@ -389,7 +472,7 @@ function initMapa() {
 function iconoTaxi() {
   return L.divIcon({
     className: '',
-    html: '<div style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🚕</div>',
+    html: '<div style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(26,35,126,0.45));">🚕</div>',
     iconSize: [35, 35], iconAnchor: [17, 17]
   });
 }
@@ -436,6 +519,10 @@ function escucharTaxis() {
             }
           }
         });
+
+        const totalDisponibles = Object.values(data).filter(c => c && c.lat && c.lng && c.estado !== 'inactivo').length;
+        actualizarConteoTaxis(totalDisponibles);
+        if (viajeActualId) actualizarRuta();
 
         // Mostrar ETA del taxi más cercano
         if (taxiMasCercano && miUbicacion && !viajeActualId) {
@@ -502,8 +589,11 @@ function escucharRespuesta(solicitudId) {
       if (d?.estado === 'aceptada') {
         document.getElementById('modal-buscando').classList.remove('show');
         viajeActualData = d;
+        notificacionLlegandoMostrada = false;
         mostrarViajeActivo(d);
+        actualizarRuta();
         monitorizarETAViaje(d);
+        mostrarNotificacion('Viaje aceptado', 'Tu conductor aceptó el viaje y ya está en camino.');
         alert(`✅ Conductor asignado: ${d.conductorId || 'En camino'}`);
       } else if (d?.estado === 'completado') {
         detenerMonitoreoViaje();
@@ -531,6 +621,7 @@ function monitorizarETAViaje(viaje) {
   // Actualizar cada 5 segundos
   intervaloETA = setInterval(() => {
     if (viajeActualData && viajeActualData.conductor_lat && viajeActualData.conductor_lng && miUbicacion) {
+      actualizarRuta();
       const dist = calcularDistancia(miUbicacion.lat, miUbicacion.lng, 
                                      viajeActualData.conductor_lat, 
                                      viajeActualData.conductor_lng);
@@ -538,6 +629,10 @@ function monitorizarETAViaje(viaje) {
       document.getElementById('eta-minutos').textContent = minutos;
       document.getElementById('eta-metros').textContent = Math.round(dist);
       document.getElementById('eta-badge').classList.add('show');
+      if (dist <= 200 && !notificacionLlegandoMostrada) {
+        notificacionLlegandoMostrada = true;
+        mostrarNotificacion('Tu taxi está llegando', 'Tu taxi está a menos de 200 metros. Prepárate para abordar.');
+      }
     }
   }, 5000);
 }
@@ -556,6 +651,7 @@ function detenerMonitoreoViaje() {
   if (intervaloETA) { clearInterval(intervaloETA); intervaloETA = null; }
   if (unsubscribeViaje) { unsubscribeViaje(); unsubscribeViaje = null; }
   if (unsubViajeActivo) { unsubViajeActivo(); unsubViajeActivo = null; }
+  if (rutaViaje && map) { map.removeLayer(rutaViaje); rutaViaje = null; }
   document.getElementById('viaje-activo').classList.remove('show');
   document.getElementById('eta-badge').classList.remove('show');
 }
@@ -661,7 +757,7 @@ function mostrarMisViajes() {
   let html = '';
   
   if (historial.length === 0) {
-    html = '<p style="color:#aaa;text-align:center;padding:20px;">No tienes viajes registrados</p>';
+    html = '<p style="color:rgba(255,255,255,0.7);text-align:center;padding:20px;">No tienes viajes registrados</p>';
   } else {
     historial.forEach(v => {
       html += '<div class="viaje-card">' +
@@ -751,22 +847,52 @@ window.addEventListener('unhandledrejection', function(e) {
 console.log('🚕 SITIO HIDALGO - App Usuario cargada');
 console.log('💾 Modo:',db ? 'ONLINE (Firebase activado)' : 'OFFLINE (Sin Firebase)');
 
+function initLogin() {
+  const nombre = localStorage.getItem('usuarioNombre');
+  const telefono = localStorage.getItem('usuarioTelefono');
+  if (nombre && telefono) {
+    usuarioId = 'usuario_' + telefono.replace(/\D/g, '') || 'usuario_' + Date.now();
+    const login = document.getElementById('login-screen');
+    if (login) login.style.display = 'none';
+    solicitarPermisoNotificaciones();
+  }
 }
-  
-  document.getElementById('chat-input').value = '';
+
+function iniciarSesion() {
+  const nombre = document.getElementById('login-name').value.trim();
+  const telefono = document.getElementById('login-phone').value.trim();
+  if (!nombre || !telefono) {
+    alert('Completa tu nombre y teléfono para continuar.');
+    return;
+  }
+  localStorage.setItem('usuarioNombre', nombre);
+  localStorage.setItem('usuarioTelefono', telefono);
+  usuarioId = 'usuario_' + telefono.replace(/\D/g, '') || 'usuario_' + Date.now();
+  ocultarLogin();
+}
+
+function entrarSinRegistro() {
+  usuarioId = 'anonimo_' + Date.now();
+  ocultarLogin();
+}
+
+function ocultarLogin() {
+  const login = document.getElementById('login-screen');
+  if (login) login.style.display = 'none';
+  solicitarPermisoNotificaciones();
 }
 
 // COMPARTIR VIAJE POR WHATSAPP
 function abrirCompartirWhatsApp() {
-  if (!miUbicacion) {
+  const lat = viajeActualData?.conductor_lat || miUbicacion?.lat;
+  const lng = viajeActualData?.conductor_lng || miUbicacion?.lng;
+  if (!lat || !lng) {
     alert('Ubicación no disponible');
     return;
   }
-  
-  const urlMaps = 'https://maps.google.com/?q=' + miUbicacion.lat + ',' + miUbicacion.lng;
-  const mensaje = encodeURIComponent('Mi taxi está en: ' + urlMaps + '\n\n🚕 Conductor: ' + (viajeActualData?.conductorId || 'Tu taxi'));
+  const urlMaps = 'https://maps.google.com/?q=' + lat + ',' + lng;
+  const mensaje = encodeURIComponent('Mi taxi está en camino, puedes seguirlo aquí: ' + urlMaps);
   const urlWhatsApp = 'https://wa.me/?text=' + mensaje;
-  
   window.open(urlWhatsApp, '_blank');
 }
 
