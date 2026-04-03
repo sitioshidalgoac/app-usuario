@@ -27,7 +27,7 @@ body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;backgrou
 
 /* HEADER */
 header{background:var(--azul);color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--dorado);z-index:100;flex-shrink:0;}
-header img{height:32px;border-radius:50%;}
+header img,header svg{height:32px;width:32px;border-radius:50%;}
 header span{font-weight:bold;font-size:14px;flex:1;}
 .menu-btn{background:none;border:none;color:var(--dorado);font-size:20px;cursor:pointer;}
 
@@ -43,7 +43,7 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 #menu{position:fixed;top:0;left:-290px;width:280px;height:100%;background:var(--azul);z-index:2000;transition:left 0.3s;border-right:2px solid var(--dorado);display:flex;flex-direction:column;}
 #menu.open{left:0;}
 .menu-header{padding:40px 20px 20px;text-align:center;border-bottom:1px solid var(--dorado);}
-.menu-header img{width:100px;border-radius:50%;border:2px solid var(--dorado);}
+.menu-header img,.menu-header svg{width:100px;height:100px;border-radius:50%;border:2px solid var(--dorado);}
 .menu-header h2{color:var(--dorado);margin-top:10px;font-size:16px;}
 .menu-header p{color:#aaa;font-size:11px;}
 .menu-item{padding:18px 25px;color:#fff;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:15px;cursor:pointer;transition:background 0.2s;}
@@ -141,7 +141,7 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 <div id="app">
   <header>
     <button class="menu-btn" onclick="abrirMenu()"><i class="fas fa-bars"></i></button>
-    <img src="assets/logo.jpeg" onerror="this.style.display='none'">
+    <svg width="32" height="32" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><circle cx="90" cy="90" r="88" fill="#FFD700" stroke="#DAA520" stroke-width="3"/><circle cx="90" cy="90" r="75" fill="#1a237e"/><text x="90" y="55" text-anchor="middle" fill="#FFD700" font-size="13" font-weight="bold" font-family="Arial">SITIO HIDALGO</text><text x="90" y="72" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">ASUNCIÓN NOCHIXTLÁN A.C.</text><text x="90" y="105" text-anchor="middle" fill="#FFD700" font-size="28">🚕</text><text x="90" y="130" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">★ ★ ★</text></svg>
     <span>NOCHIXTLÁN, OAXACA</span>
     <i class="fas fa-circle" id="statusDot" style="color:#4caf50;font-size:10px;"></i>
   </header>
@@ -160,7 +160,7 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 <div id="overlay" onclick="cerrarMenu()"></div>
 <div id="menu">
   <div class="menu-header">
-    <img src="assets/logo.jpeg" onerror="this.src=''">
+    <svg width="100" height="100" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><circle cx="90" cy="90" r="88" fill="#FFD700" stroke="#DAA520" stroke-width="3"/><circle cx="90" cy="90" r="75" fill="#1a237e"/><text x="90" y="55" text-anchor="middle" fill="#FFD700" font-size="13" font-weight="bold" font-family="Arial">SITIO HIDALGO</text><text x="90" y="72" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">ASUNCIÓN NOCHIXTLÁN A.C.</text><text x="90" y="105" text-anchor="middle" fill="#FFD700" font-size="28">🚕</text><text x="90" y="130" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">★ ★ ★</text></svg>
     <h2>SITIO HIDALGO</h2>
     <p>Tradición y Seguridad</p>
   </div>
@@ -196,7 +196,7 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 <!-- MODAL BUSCANDO -->
 <div id="modal-buscando">
   <div class="modal-box">
-    <img src="assets/logo.jpeg" onerror="this.style.display='none'">
+    <svg width="80" height="80" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><circle cx="90" cy="90" r="88" fill="#FFD700" stroke="#DAA520" stroke-width="3"/><circle cx="90" cy="90" r="75" fill="#1a237e"/><text x="90" y="55" text-anchor="middle" fill="#FFD700" font-size="13" font-weight="bold" font-family="Arial">SITIO HIDALGO</text><text x="90" y="72" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">ASUNCIÓN NOCHIXTLÁN A.C.</text><text x="90" y="105" text-anchor="middle" fill="#FFD700" font-size="28">🚕</text><text x="90" y="130" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">★ ★ ★</text></svg>
     <h2>Buscando taxi...</h2>
     <div class="spinner"></div>
     <p>Conectando con conductores disponibles cerca de tu ubicación</p>
@@ -209,7 +209,7 @@ header span{font-weight:bold;font-size:14px;flex:1;}
   <div class="modal-calificacion">
     <h2>¿Cómo fue tu viaje?</h2>
     <div class="taxista-info" id="taxista-info-container">
-      <img id="taxista-foto" src="assets/logo.jpeg" onerror="this.style.display='none'">
+      <svg id="taxista-foto" width="60" height="60" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><circle cx="90" cy="90" r="88" fill="#FFD700" stroke="#DAA520" stroke-width="3"/><circle cx="90" cy="90" r="75" fill="#1a237e"/><text x="90" y="55" text-anchor="middle" fill="#FFD700" font-size="13" font-weight="bold" font-family="Arial">SITIO HIDALGO</text><text x="90" y="72" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">ASUNCIÓN NOCHIXTLÁN A.C.</text><text x="90" y="105" text-anchor="middle" fill="#FFD700" font-size="28">🚕</text><text x="90" y="130" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">★ ★ ★</text></svg>
       <p id="taxista-nombre">Conductor</p>
     </div>
     <div class="estrellas" id="estrellas-container"></div>
@@ -300,14 +300,24 @@ function guardarHistorial(viaje) {
 
 // SPLASH → APP
 setTimeout(() => {
-  document.getElementById('splash').classList.add('hide');
-  setTimeout(() => {
-    document.getElementById('splash').style.display = 'none';
+  try {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => {
+      try {
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('app').classList.add('show');
+        initMapa();
+        escucharTaxis();
+      } catch(e) {
+        console.error('Error inicializando la app:', e);
+        document.getElementById('app').classList.add('show');
+      }
+    }, 800);
+  } catch(e) {
+    console.error('Error ocultando splash:', e);
     document.getElementById('app').classList.add('show');
-    initMapa();
-    escucharTaxis();
-  }, 800);
-}, 1000);
+  }
+}, 2500);
 
 // INIT MAPA
 function initMapa() {
