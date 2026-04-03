@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" style="display:block !important;">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -22,8 +22,8 @@ body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;backgrou
 @keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-10px);}}
 
 /* APP */
-#app{display:none;flex-direction:column;height:100vh;}
-#app.show{display:flex;}
+#app{display:none !important;flex-direction:column;height:100vh;}
+#app.show{display:flex !important;}
 
 /* HEADER */
 header{background:var(--azul);color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--dorado);z-index:100;flex-shrink:0;}
@@ -250,20 +250,28 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// CONFIG FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyDEu6dOk9mUqXp52lyY6vBEm4GAsgU0ESU",
-  authDomain: "sitios-hidalgo-gps.firebaseapp.com",
-  databaseURL: "https://sitios-hidalgo-gps-default-rtdb.firebaseio.com",
-  projectId: "sitios-hidalgo-gps",
-  storageBucket: "sitios-hidalgo-gps.appspot.com",
-  messagingSenderId: "140903781731",
-  appId: "1:140903781731:web:app-usuario"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const rtdb = firebase.database();
-const auth = firebase.auth();
+// CONFIG FIREBASE - CON MANEJO DE ERRORES
+try {
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEu6dOk9mUqXp52lyY6vBEm4GAsgU0ESU",
+    authDomain: "sitios-hidalgo-gps.firebaseapp.com",
+    databaseURL: "https://sitios-hidalgo-gps-default-rtdb.firebaseio.com",
+    projectId: "sitios-hidalgo-gps",
+    storageBucket: "sitios-hidalgo-gps.appspot.com",
+    messagingSenderId: "140903781731",
+    appId: "1:140903781731:web:app-usuario"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const rtdb = firebase.database();
+  const auth = firebase.auth();
+  console.log('✅ Firebase inicializado');
+} catch(e) {
+  console.error('❌ Error inicializando Firebase (continuando sin BD):', e);
+  var db = null;
+  var rtdb = null;
+  var auth = null;
+}
 
 // VARIABLES
 let map, marcadoresTaxis = {}, unsubscribeViaje = null, unsubViajeActivo = null;
@@ -301,30 +309,80 @@ function guardarHistorial(viaje) {
 // SPLASH → APP
 setTimeout(() => {
   try {
-    document.getElementById('splash').classList.add('hide');
-    setTimeout(() => {
-      try {
-        document.getElementById('splash').style.display = 'none';
-        document.getElementById('app').classList.add('show');
-        initMapa();
-        escucharTaxis();
-      } catch(e) {
-        console.error('Error inicializando la app:', e);
-        document.getElementById('app').classList.add('show');
-      }
-    }, 800);
+    console.log('🎬 Ocultando splash screen...');
+    const splash = document.getElementById('splash');
+    if (splash) {
+      splash.classList.add('hide');
+      setTimeout(() => {
+        try {
+          splash.style.display = 'none';
+          const app = document.getElementById('app');
+          if (app) {
+            app.classList.add('show');
+            console.log('✅ App mostrada');
+          }
+          // Inicializar mapa sin esperar Firebase
+          try {
+            if (typeof initMapa === 'function') {
+              initMapa();
+              console.log('✅ Mapa inicializado');
+            }
+          } catch(e) {
+            console.warn('⚠️ Error inicializando mapa:', e);
+          }
+          // Escuchar taxis si Firebase está listo
+          try {
+            if (typeof escucharTaxis === 'function' && typeof rtdb !== 'undefined') {
+              escucharTaxis();
+              console.log('✅ Escuchando taxis');
+            }
+          } catch(e) {
+            console.warn('⚠️ Firebase no disponible aún:', e);
+          }
+        } catch(e) {
+          console.error('Error crítico después del splash:', e);
+        }
+      }, 800);
+    }
   } catch(e) {
     console.error('Error ocultando splash:', e);
-    document.getElementById('app').classList.add('show');
+    const app = document.getElementById('app');
+    if (app) app.classList.add('show');
   }
 }, 2500);
 
 // INIT MAPA
 function initMapa() {
-  map = L.map('map', { zoomControl: false, attributionControl: false })
-    .setView(CENTRO, 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-  L.control.zoom({ position: 'topright' }).addTo(map);
+  try {
+    console.log('🗺️ Inicializando Leaflet...');
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+      throw new Error('Contenedor #map no encontrado en el DOM');
+    }
+    
+    map = L.map('map', { 
+      zoomControl: false, 
+      attributionControl: false,
+      center: CENTRO,
+      zoom: 14
+    });
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    L.control.zoom({ position: 'topright' }).addTo(map);
+    
+    // Agregar marcador del centro
+    L.marker(CENTRO, {
+      title: 'SITIO HIDALGO'
+    }).addTo(map).bindPopup('SITIO HIDALGO<br>Nochixtlán, Oaxaca');
+    
+    console.log('✅ Leaflet inicializado en:', CENTRO);
+  } catch(e) {
+    console.error('❌ Error inicializando mapa:', e);
+  }
 }
 
 // ICONO TAXI DORADO
@@ -338,66 +396,101 @@ function iconoTaxi() {
 
 // ESCUCHAR TAXIS EN RTDB + CALCULAR ETA
 function escucharTaxis() {
-  rtdb.ref('conductores').on('value', snap => {
-    const data = snap.val() || {};
-    // Remover taxis que ya no están
-    Object.keys(marcadoresTaxis).forEach(id => {
-      if (!data[id] || data[id].estado === 'inactivo') {
-        map.removeLayer(marcadoresTaxis[id]);
-        delete marcadoresTaxis[id];
-      }
-    });
-    // Agregar/mover taxis activos
-    let distanciaMinima = Infinity;
-    let taxiMasCercano = null;
-    Object.entries(data).forEach(([id, c]) => {
-      if (!c.lat || !c.lng || c.estado === 'inactivo') return;
-      if (marcadoresTaxis[id]) {
-        marcadoresTaxis[id].setLatLng([c.lat, c.lng]);
-      } else {
-        marcadoresTaxis[id] = L.marker([c.lat, c.lng], { icon: iconoTaxi() })
-          .bindPopup(`<b>${id}</b><br>Disponible`)
-          .addTo(map);
-      }
-      
-      // Calcular distancia si tenemos ubicación del usuario
-      if (miUbicacion && !viajeActualId) {
-        const dist = calcularDistancia(miUbicacion.lat, miUbicacion.lng, c.lat, c.lng);
-        if (dist < distanciaMinima) {
-          distanciaMinima = dist;
-          taxiMasCercano = { id, lat: c.lat, lng: c.lng, dist };
-        }
-      }
-    });
-
-    // Mostrar ETA del taxi más cercano
-    if (taxiMasCercano && miUbicacion && !viajeActualId) {
-      const minutos = Math.max(1, Math.round(taxiMasCercano.dist / 1000 / 0.667)); // ~40 km/h promedio
-      document.getElementById('eta-minutos').textContent = minutos;
-      document.getElementById('eta-metros').textContent = Math.round(taxiMasCercano.dist);
-      document.getElementById('eta-badge').classList.add('show');
-    } else if (!viajeActualId) {
-      document.getElementById('eta-badge').classList.remove('show');
+  try {
+    if (!rtdb) {
+      console.warn('⚠️ RTDB no disponible, taxis no se mostrarán');
+      return;
     }
-  });
+    
+    rtdb.ref('conductores').on('value', snap => {
+      try {
+        const data = snap.val() || {};
+        // Remover taxis que ya no están
+        Object.keys(marcadoresTaxis).forEach(id => {
+          if (!data[id] || data[id].estado === 'inactivo') {
+            if (map && marcadoresTaxis[id]) {
+              map.removeLayer(marcadoresTaxis[id]);
+            }
+            delete marcadoresTaxis[id];
+          }
+        });
+        // Agregar/mover taxis activos
+        let distanciaMinima = Infinity;
+        let taxiMasCercano = null;
+        Object.entries(data).forEach(([id, c]) => {
+          if (!c.lat || !c.lng || c.estado === 'inactivo') return;
+          if (marcadoresTaxis[id]) {
+            marcadoresTaxis[id].setLatLng([c.lat, c.lng]);
+          } else if (map) {
+            marcadoresTaxis[id] = L.marker([c.lat, c.lng], { icon: iconoTaxi() })
+              .bindPopup(`<b>${id}</b><br>Disponible`)
+              .addTo(map);
+          }
+          
+          // Calcular distancia si tenemos ubicación del usuario
+          if (miUbicacion && !viajeActualId) {
+            const dist = calcularDistancia(miUbicacion.lat, miUbicacion.lng, c.lat, c.lng);
+            if (dist < distanciaMinima) {
+              distanciaMinima = dist;
+              taxiMasCercano = { id, lat: c.lat, lng: c.lng, dist };
+            }
+          }
+        });
+
+        // Mostrar ETA del taxi más cercano
+        if (taxiMasCercano && miUbicacion && !viajeActualId) {
+          const minutos = Math.max(1, Math.round(taxiMasCercano.dist / 1000 / 0.667));
+          document.getElementById('eta-minutos').textContent = minutos;
+          document.getElementById('eta-metros').textContent = Math.round(taxiMasCercano.dist);
+          document.getElementById('eta-badge').classList.add('show');
+        } else if (!viajeActualId) {
+          document.getElementById('eta-badge').classList.remove('show');
+        }
+      } catch(e) {
+        console.error('Error procesando taxis:', e);
+      }
+    }, (err) => {
+      console.error('Error escuchando taxis:', err);
+    });
+  } catch(e) {
+    console.error('Error en escucharTaxis:', e);
+  }
 }
 
 // PEDIR TAXI + CAPTURAR GPS
 function pedirTaxi() {
-  document.getElementById('modal-buscando').classList.add('show');
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude: lat, longitude: lng } = pos.coords;
-    miUbicacion = { lat, lng };
-    const uid = auth.currentUser?.uid || 'anonimo_' + Date.now();
-    usuarioId = uid;
-    
-    db.collection('solicitudes').add({
-      usuarioId: uid,
-      lat, lng,
-      estado: 'pendiente',
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(ref => escucharRespuesta(ref.id));
-  }, () => alert('Activa tu GPS para solicitar un taxi'));
+  try {
+    if (!db) {
+      alert('La app está funcionando en modo offline');
+      return;
+    }
+    document.getElementById('modal-buscando').classList.add('show');
+    navigator.geolocation.getCurrentPosition(pos => {
+      try {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        miUbicacion = { lat, lng };
+        const uid = auth?.currentUser?.uid || 'anonimo_' + Date.now();
+        usuarioId = uid;
+        
+        db.collection('solicitudes').add({
+          usuarioId: uid,
+          lat, lng,
+          estado: 'pendiente',
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(ref => escucharRespuesta(ref.id));
+      } catch(e) {
+        console.error('Error procesando geolocalización:', e);
+        document.getElementById('modal-buscando').classList.remove('show');
+      }
+    }, (err) => {
+      console.error('Error GPS:', err);
+      alert('Activa tu GPS para solicitar un taxi');
+      document.getElementById('modal-buscando').classList.remove('show');
+    });
+  } catch(e) {
+    console.error('Error en pedirTaxi:', e);
+    alert('❌ Error al solicitar taxi');
+  }
 }
 
 // ESCUCHAR RESPUESTA DEL CONDUCTOR + MONITOREO DE VIAJE
@@ -475,26 +568,41 @@ function cancelarBusqueda() {
 
 // SOS MEJORADO - CON GPS EXACTO Y VIBRACIÓN
 function activarSOSMejorado() {
-  if (confirm('¿Activar alerta SOS de emergencia?')) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-      const uid = auth.currentUser?.uid || 'anonimo_' + Date.now();
-      
-      // Guardar SOS en Firebase con ubicación exacta
-      db.collection('sos').add({
-        usuarioId: uid,
-        lat, lng,
-        accuracy,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        activo: true,
-        tipo: 'EMERGENCIA'
+  try {
+    if (confirm('¿Activar alerta SOS de emergencia?')) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        try {
+          const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+          const uid = auth?.currentUser?.uid || 'anonimo_' + Date.now();
+          
+          if (db) {
+            // Guardar SOS en Firebase con ubicación exacta
+            db.collection('sos').add({
+              usuarioId: uid,
+              lat, lng,
+              accuracy,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              activo: true,
+              tipo: 'EMERGENCIA'
+            });
+          }
+          
+          // Vibración de confirmación
+          vibrar([200, 100, 200, 100, 500]);
+          alert('🆘 Alerta SOS enviada. Tu ubicación exacta fue compartida.');
+          console.log('SOS: ' + lat + ', ' + lng + ' ± ' + accuracy.toFixed(0) + 'm');
+        } catch(e) {
+          console.error('Error procesando SOS:', e);
+          alert('⚠️ Ocurrió un error. Intenta llamar directamente a emergencias.');
+        }
+      }, (err) => {
+        console.error('Error SOS GPS:', err);
+        alert('⚠️ No pudimos obtener tu GPS. Intenta de nuevo.');
       });
-      
-      // Vibración de confirmación
-      vibrar([200, 100, 200, 100, 500]);
-      alert('🆘 Alerta SOS enviada. Tu ubicación exacta fue compartida.');
-      console.log('SOS: ' + lat + ', ' + lng + ' ± ' + accuracy.toFixed(0) + 'm');
-    }, () => alert('⚠️ No pudimos obtener tu GPS. Intenta de nuevo.'));
+    }
+  } catch(e) {
+    console.error('Error activando SOS:', e);
+    alert('❌ Error activando SOS');
   }
 }
 
@@ -589,31 +697,61 @@ function abrirChat() {
   document.getElementById('modal-chat').classList.add('show');
   
   // Escuchar mensajes en tiempo real
-  db.collection('chats').where('viajeId', '==', viajeActualId)
-    .orderBy('timestamp', 'asc')
-    .onSnapshot(snap => {
-      let html = '';
-      snap.forEach(doc => {
-        const msg = doc.data();
-        const esUsuario = msg.tipo === 'usuario';
-        html += '<div class="chat-msg ' + (esUsuario ? 'usuario' : 'conductor') + '"><b>' + msg.remitente + ':</b> ' + msg.texto + '</div>';
-      });
-      document.getElementById('chat-mensajes').innerHTML = html;
-      document.getElementById('chat-mensajes').scrollTop = document.getElementById('chat-mensajes').scrollHeight;
-    });
+  try {
+    if (db) {
+      db.collection('chats').where('viajeId', '==', viajeActualId)
+        .orderBy('timestamp', 'asc')
+        .onSnapshot(snap => {
+          let html = '';
+          snap.forEach(doc => {
+            const msg = doc.data();
+            const esUsuario = msg.tipo === 'usuario';
+            html += '<div class="chat-msg ' + (esUsuario ? 'usuario' : 'conductor') + '"><b>' + msg.remitente + ':</b> ' + msg.texto + '</div>';
+          });
+          document.getElementById('chat-mensajes').innerHTML = html;
+          document.getElementById('chat-mensajes').scrollTop = document.getElementById('chat-mensajes').scrollHeight;
+        });
+    }
+  } catch(e) {
+    console.error('Error en chat:', e);
+  }
 }
 
 function enviarMensajeChat() {
-  const texto = document.getElementById('chat-input').value.trim();
-  if (!texto || !viajeActualId) return;
-  
-  db.collection('chats').add({
-    viajeId: viajeActualId,
-    tipo: 'usuario',
-    remitente: 'Tú',
-    texto: texto,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
+  try {
+    const texto = document.getElementById('chat-input').value.trim();
+    if (!texto || !viajeActualId || !db) return;
+    
+    db.collection('chats').add({
+      viajeId: viajeActualId,
+      tipo: 'usuario',
+      remitente: 'Tú',
+      texto: texto,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('chat-input').value = '';
+  } catch(e) {
+    console.error('Error enviando mensaje:', e);
+  }
+}
+
+// MANEJADORES GLOBALES DE ERRORES
+window.addEventListener('error', function(e) {
+  console.error('❌ Error no capturado:', e.error);
+  // La app no debería detenerse por errores en JavaScript
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+  console.error('❌ Promise rechazada:', e.reason);
+  // Prevenir que el navegador maneje la promesa rechazada
+  e.preventDefault();
+});
+
+// Log de inicialización
+console.log('🚕 SITIO HIDALGO - App Usuario cargada');
+console.log('💾 Modo:',db ? 'ONLINE (Firebase activado)' : 'OFFLINE (Sin Firebase)');
+
+}
   
   document.getElementById('chat-input').value = '';
 }
