@@ -14,7 +14,7 @@ body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;backgrou
 /* SPLASH */
 #splash{position:fixed;inset:0;background:var(--azul);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.8s;}
 #splash.hide{opacity:0;pointer-events:none;}
-#splash img{width:200px;margin-bottom:20px;border-radius:50%;border:3px solid var(--dorado);}
+#splash svg{width:200px;margin-bottom:20px;}
 #splash h1{color:var(--dorado);font-size:26px;letter-spacing:2px;text-align:center;}
 #splash p{color:#fff;font-size:11px;letter-spacing:4px;margin-top:8px;}
 #splash .copy{position:absolute;bottom:30px;color:rgba(255,255,255,0.5);font-size:11px;}
@@ -126,7 +126,11 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 
 <!-- SPLASH -->
 <div id="splash">
-  <img src="assets/logo.jpeg" onerror="this.style.display='none'">
+  <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="100" r="95" fill="#1a237e" stroke="#FFD700" stroke-width="5"/>
+    <text x="100" y="85" text-anchor="middle" fill="#FFD700" font-size="16" font-family="Arial, sans-serif" font-weight="bold">SITIO HIDALGO</text>
+    <text x="100" y="105" text-anchor="middle" fill="#FFD700" font-size="10" font-family="Arial, sans-serif">ASUNCIÓN NOCHIXTLÁN A.C.</text>
+  </svg>
   <h1>SITIO HIDALGO</h1>
   <p>TRADICIÓN Y SEGURIDAD</p>
   <div class="taxi-icon">🚕</div>
@@ -303,7 +307,7 @@ setTimeout(() => {
     initMapa();
     escucharTaxis();
   }, 800);
-}, 2500);
+}, 1000);
 
 // INIT MAPA
 function initMapa() {
