@@ -3,18 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>SHidalgo Kué'in</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;background:#0a0a14;}
-#splash{position:fixed;inset:0;background:linear-gradient(135deg,#0a0a14 0%,#1a237e 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;}
+body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;background:#1a237e;}
+#splash{position:fixed;inset:0;background:#1a237e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 1s;}
 #splash h1{color:#FFD700;font-size:28px;font-weight:900;letter-spacing:3px;margin-top:20px;text-align:center;}
-#splash p{color:rgba(255,255,255,0.7);font-size:12px;letter-spacing:4px;margin-top:8px;}
-#splash .taxi-anim{font-size:32px;margin-top:20px;animation:mover 2s linear infinite;}
-@keyframes mover{0%{transform:translateX(-50px);}50%{transform:translateX(50px);}100%{transform:translateX(-50px);}}
+#splash p{color:rgba(255,255,255,0.8);font-size:12px;letter-spacing:4px;margin-top:8px;}
 #splash .copy{position:absolute;bottom:30px;color:rgba(255,255,255,0.4);font-size:11px;}
 #app{display:none;flex-direction:column;height:100vh;}
 header{background:#1a237e;color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #FFD700;flex-shrink:0;}
@@ -23,7 +20,7 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 .menu-btn{background:none;border:none;color:#FFD700;font-size:22px;cursor:pointer;}
 #map{flex:1;width:100%;}
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:15px;display:flex;gap:10px;background:linear-gradient(transparent,rgba(0,0,0,0.8));}
-.btn-pedir{flex:1;background:#1a237e;color:#fff;border:2px solid #FFD700;border-radius:16px;padding:20px;font-size:18px;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;box-shadow:0 4px 20px rgba(255,215,0,0.3);}
+.btn-pedir{flex:1;background:#1a237e;color:#fff;border:2px solid #FFD700;border-radius:16px;padding:20px;font-size:18px;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;}
 .btn-sos{width:85px;background:#d32f2f;color:#fff;border:none;border-radius:16px;padding:20px;font-size:13px;font-weight:bold;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;}
 #menu{position:fixed;top:0;left:-290px;width:280px;height:100%;background:#1a237e;z-index:2000;transition:left 0.3s;border-right:2px solid #FFD700;display:flex;flex-direction:column;}
 #menu.open{left:0;}
@@ -37,11 +34,11 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 #modal-buscando{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;align-items:center;justify-content:center;}
 #modal-buscando.show{display:flex;}
 .modal-box{background:#1a237e;border:2px solid #FFD700;border-radius:20px;padding:40px;text-align:center;width:85%;}
-.modal-box h2{color:#FFD700;margin-bottom:10px;font-size:20px;}
+.modal-box h2{color:#FFD700;margin-bottom:10px;}
 .modal-box p{color:#fff;font-size:13px;margin-top:10px;}
 .spinner{width:60px;height:60px;border:4px solid rgba(255,215,0,0.3);border-top:4px solid #FFD700;border-radius:50%;animation:spin 1s linear infinite;margin:20px auto;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.btn-cancelar{margin-top:20px;background:#d32f2f;color:#fff;border:none;border-radius:10px;padding:14px 30px;font-weight:bold;cursor:pointer;font-size:16px;}
+.btn-cancelar{margin-top:20px;background:#d32f2f;color:#fff;border:none;border-radius:10px;padding:14px 30px;font-weight:bold;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -49,7 +46,6 @@ header span{font-weight:bold;font-size:14px;flex:1;}
   <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="160" height="160">
     <circle cx="100" cy="100" r="98" fill="#DAA520"/>
     <circle cx="100" cy="100" r="86" fill="#1a237e"/>
-    <circle cx="100" cy="100" r="72" fill="#DAA520" opacity="0.2"/>
     <text x="100" y="58" text-anchor="middle" fill="#FFD700" font-size="12" font-weight="bold" font-family="Arial">SITIOS HIDALGO A.C.</text>
     <text x="100" y="78" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Arial">★ ★ ★ ★ ★</text>
     <text x="100" y="118" text-anchor="middle" fill="#FFD700" font-size="48">🚕</text>
@@ -58,28 +54,18 @@ header span{font-weight:bold;font-size:14px;flex:1;}
   </svg>
   <h1>SITIO HIDALGO</h1>
   <p>TRADICIÓN Y SEGURIDAD</p>
-  <div class="taxi-anim">🚕</div>
   <span class="copy">© SITIO HIDALGO 2026</span>
 </div>
 <div id="app">
   <header>
     <button class="menu-btn" onclick="abrirMenu()"><i class="fas fa-bars"></i></button>
-    <svg viewBox="0 0 200 200" width="32" height="32">
-      <circle cx="100" cy="100" r="98" fill="#DAA520"/>
-      <circle cx="100" cy="100" r="86" fill="#1a237e"/>
-      <text x="100" y="118" text-anchor="middle" fill="#FFD700" font-size="80">🚕</text>
-    </svg>
     <span>NOCHIXTLÁN, OAXACA</span>
     <span id="taxi-count">🚕 0</span>
   </header>
   <div id="map"></div>
   <div class="bottom-bar">
-    <button class="btn-pedir" onclick="pedirTaxi()">
-      <i class="fas fa-taxi"></i> SOLICITAR VIAJE
-    </button>
-    <button class="btn-sos" onclick="activarSOS()">
-      <i class="fas fa-shield-alt" style="font-size:20px"></i> SOS
-    </button>
+    <button class="btn-pedir" onclick="pedirTaxi()"><i class="fas fa-taxi"></i> SOLICITAR VIAJE</button>
+    <button class="btn-sos" onclick="activarSOS()"><i class="fas fa-shield-alt" style="font-size:20px"></i> SOS</button>
   </div>
 </div>
 <div id="overlay" onclick="cerrarMenu()"></div>
@@ -98,15 +84,13 @@ header span{font-weight:bold;font-size:14px;flex:1;}
   <div class="menu-item"><i class="fas fa-cog"></i> Configuración</div>
   <div class="menu-item"><i class="fas fa-phone"></i> Contacto</div>
   <div class="menu-item"><i class="fas fa-info-circle"></i> Nosotros</div>
-  <div class="menu-item" style="margin-top:auto;border-top:1px solid #FFD700;" onclick="cerrarSesion()">
-    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-  </div>
+  <div class="menu-item" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</div>
 </div>
 <div id="modal-buscando">
   <div class="modal-box">
     <h2>🚕 Buscando taxi...</h2>
     <div class="spinner"></div>
-    <p>Conectando con conductores disponibles cerca de ti</p>
+    <p>Conectando con conductores disponibles</p>
     <button class="btn-cancelar" onclick="cancelarBusqueda()">Cancelar</button>
   </div>
 </div>
@@ -115,114 +99,87 @@ header span{font-weight:bold;font-size:14px;flex:1;}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// SPLASH → APP (independiente de Firebase)
-window.addEventListener('load', function() {
-  setTimeout(function() {
-    document.getElementById('splash').style.display = 'none';
-    var app = document.getElementById('app');
-    app.style.display = 'flex';
-    initMapa();
-    initFirebase();
-  }, 3000);
-});
+var map, marcadores={}, unsubViaje=null;
 
-var map, marcadores = {}, rutaLinea = null, unsubViaje = null;
+// SPLASH - usa setTimeout simple, sin depender de load
+setTimeout(function(){
+  var s=document.getElementById('splash');
+  var a=document.getElementById('app');
+  s.style.opacity='0';
+  setTimeout(function(){
+    s.style.display='none';
+    a.style.display='flex';
+    iniciarMapa();
+    iniciarFirebase();
+  },800);
+},3000);
 
-function initMapa() {
-  try {
-    map = L.map('map', {zoomControl:false, attributionControl:false}).setView([17.4575,-97.2273], 14);
+function iniciarMapa(){
+  try{
+    map=L.map('map',{zoomControl:false,attributionControl:false}).setView([17.4575,-97.2273],14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     L.control.zoom({position:'topright'}).addTo(map);
-  } catch(e) { console.log('Error mapa:', e); }
+  }catch(e){console.log('Mapa error:',e);}
 }
 
-function initFirebase() {
-  try {
-    var cfg = {
-      apiKey:"AIzaSyDEu6dOk9mUqXp52lyY6vBEm4GAsgU0ESU",
-      authDomain:"sitios-hidalgo-gps.firebaseapp.com",
-      databaseURL:"https://sitios-hidalgo-gps-default-rtdb.firebaseio.com",
-      projectId:"sitios-hidalgo-gps",
-      storageBucket:"sitios-hidalgo-gps.appspot.com",
-      messagingSenderId:"140903781731"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(cfg);
+function iniciarFirebase(){
+  try{
+    var cfg={apiKey:"AIzaSyDEu6dOk9mUqXp52lyY6vBEm4GAsgU0ESU",authDomain:"sitios-hidalgo-gps.firebaseapp.com",databaseURL:"https://sitios-hidalgo-gps-default-rtdb.firebaseio.com",projectId:"sitios-hidalgo-gps",storageBucket:"sitios-hidalgo-gps.appspot.com",messagingSenderId:"140903781731"};
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
     escucharTaxis();
-  } catch(e) { console.log('Firebase error:', e); }
+  }catch(e){console.log('Firebase error:',e);}
 }
 
-function iconoTaxi() {
-  return L.divIcon({className:'',html:'<div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">🚕</div>',iconSize:[35,35],iconAnchor:[17,17]});
+function iconoTaxi(){
+  return L.divIcon({className:'',html:'<div style="font-size:26px">🚕</div>',iconSize:[35,35],iconAnchor:[17,17]});
 }
 
-function escucharTaxis() {
-  try {
-    var rtdb = firebase.database();
-    rtdb.ref('conductores').on('value', function(snap) {
-      var data = snap.val() || {};
-      var count = 0;
-      Object.keys(marcadores).forEach(function(id) {
-        if (!data[id]) { map.removeLayer(marcadores[id]); delete marcadores[id]; }
-      });
-      Object.entries(data).forEach(function(entry) {
-        var id = entry[0], c = entry[1];
-        if (!c.lat || !c.lng) return;
+function escucharTaxis(){
+  try{
+    firebase.database().ref('conductores').on('value',function(snap){
+      var data=snap.val()||{};
+      var count=0;
+      Object.keys(marcadores).forEach(function(id){if(!data[id]){map.removeLayer(marcadores[id]);delete marcadores[id];}});
+      Object.entries(data).forEach(function(e){
+        var id=e[0],c=e[1];
+        if(!c.lat||!c.lng)return;
         count++;
-        if (marcadores[id]) marcadores[id].setLatLng([c.lat, c.lng]);
-        else marcadores[id] = L.marker([c.lat,c.lng],{icon:iconoTaxi()}).bindPopup('<b>'+id+'</b>').addTo(map);
+        if(marcadores[id])marcadores[id].setLatLng([c.lat,c.lng]);
+        else marcadores[id]=L.marker([c.lat,c.lng],{icon:iconoTaxi()}).bindPopup('<b>'+id+'</b>').addTo(map);
       });
-      var el = document.getElementById('taxi-count');
-      if (el) el.textContent = '🚕 ' + count;
+      var el=document.getElementById('taxi-count');
+      if(el)el.textContent='🚕 '+count;
     });
-  } catch(e) { console.log('Error taxis:', e); }
+  }catch(e){console.log('Taxis error:',e);}
 }
 
-function pedirTaxi() {
+function pedirTaxi(){
   document.getElementById('modal-buscando').classList.add('show');
-  navigator.geolocation.getCurrentPosition(function(pos) {
-    try {
-      var db = firebase.firestore();
-      db.collection('solicitudes').add({
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        estado: 'pendiente',
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } catch(e) { console.log('Error solicitud:', e); }
-  }, function() { alert('Activa tu GPS para solicitar un taxi'); });
+  navigator.geolocation.getCurrentPosition(function(pos){
+    try{
+      firebase.firestore().collection('solicitudes').add({lat:pos.coords.latitude,lng:pos.coords.longitude,estado:'pendiente',timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+    }catch(e){}
+  },function(){alert('Activa tu GPS');});
 }
 
-function cancelarBusqueda() {
+function cancelarBusqueda(){
   document.getElementById('modal-buscando').classList.remove('show');
-  if (unsubViaje) { unsubViaje(); unsubViaje = null; }
 }
 
-function activarSOS() {
-  if (confirm('¿Activar alerta SOS de emergencia?')) {
-    try {
-      var db = firebase.firestore();
-      navigator.geolocation.getCurrentPosition(function(pos) {
-        db.collection('sos').add({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          activo: true
-        });
+function activarSOS(){
+  if(confirm('¿Activar alerta SOS?')){
+    try{
+      navigator.geolocation.getCurrentPosition(function(pos){
+        firebase.firestore().collection('sos').add({lat:pos.coords.latitude,lng:pos.coords.longitude,timestamp:firebase.firestore.FieldValue.serverTimestamp(),activo:true});
       });
-    } catch(e) {}
-    alert('🆘 Alerta SOS enviada. El equipo fue notificado.');
+    }catch(e){}
+    alert('🆘 SOS enviado.');
   }
 }
 
-function abrirMenu() {
-  document.getElementById('menu').classList.add('open');
-  document.getElementById('overlay').classList.add('show');
-}
-function cerrarMenu() {
-  document.getElementById('menu').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-}
-function cerrarSesion() { location.reload(); }
+function abrirMenu(){document.getElementById('menu').classList.add('open');document.getElementById('overlay').classList.add('show');}
+function cerrarMenu(){document.getElementById('menu').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+function cerrarSesion(){location.reload();}
 </script>
 </body>
 </html>
