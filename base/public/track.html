@@ -381,12 +381,14 @@
     // ──────────────────────────────────────────────
     // ESTADO GLOBAL
     // ──────────────────────────────────────────────
-    let map = null;
-    let userMarker = null;
-    let taxiMarker = null;
-    let viajeData = null;
-    let trackingRef = null;
+    let map          = null;
+    let userMarker   = null;
+    let taxiMarker   = null;
+    let viajeData    = null;
+    let trackingRef  = null;
     let userLocation = { lat: null, lng: null };
+    let userWatchId  = null;   // ID del watchPosition para poder cancelarlo
+    let clockInterval = null;  // ID del setInterval del reloj
 
     // ──────────────────────────────────────────────
     // INICIALIZACIÓN
@@ -403,9 +405,9 @@
       // Inicializar mapa
       initMap();
 
-      // Obtener ubicación del usuario
+      // Obtener ubicación del usuario (guardamos ID para limpiar al salir)
       if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
+        userWatchId = navigator.geolocation.watchPosition(
           (pos) => {
             userLocation.lat = pos.coords.latitude;
             userLocation.lng = pos.coords.longitude;
@@ -420,12 +422,19 @@
       // Escuchar datos del viaje
       escucharViaje(viajeId);
 
-      // Actualizar hora
-      setInterval(() => {
-        document.getElementById("info-time").textContent = 
+      // Actualizar hora (guardamos ID para limpiar al salir)
+      clockInterval = setInterval(() => {
+        document.getElementById("info-time").textContent =
           new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
       }, 1000);
     }
+
+    // Limpiar todos los recursos al salir de la página
+    window.addEventListener("pagehide", () => {
+      if (trackingRef)  { trackingRef.off(); trackingRef = null; }
+      if (userWatchId !== null) { navigator.geolocation.clearWatch(userWatchId); userWatchId = null; }
+      if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
+    });
 
     // ──────────────────────────────────────────────
     // MAPA LEAFLET

@@ -1450,6 +1450,8 @@ function showLogin() {
 function tearDown() {
   // Limpiar sistema de calificaciones
   if (typeof destruirSistemaCalificaciones === 'function') destruirSistemaCalificaciones();
+  // Limpiar listeners SOS (sos-base.js)
+  if (typeof destroyListenerSOS === 'function') destroyListenerSOS();
   // Detach TODOS los listeners de cada ref registrada
   // ref.off() sin argumentos desconecta absolutamente todos los callbacks
   const refsVistas = new Set();
