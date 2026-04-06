@@ -460,6 +460,131 @@
       border-radius: 50%; background: var(--red);
       animation: sosPulse 1s ease-out infinite; margin-right: 4px;
     }
+  
+    /* ═══════════════════════════════════════════
+       PANEL DE CALIFICACIONES — Mission Control
+    ═══════════════════════════════════════════ */
+    .ps-cal { padding: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-y: auto; }
+
+    /* Alerta card */
+    .cal-alerta {
+      background: rgba(239,68,68,0.06);
+      border: 1px solid var(--red);
+      border-radius: var(--radius);
+      padding: 10px;
+      margin-bottom: 8px;
+      animation: pulseCal 2s infinite;
+    }
+    @keyframes pulseCal {
+      0%,100% { border-color: #ef4444; box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+      50%      { border-color: #f87171; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+    }
+    .cal-alerta.atendida {
+      background: rgba(16,185,129,0.06);
+      border-color: var(--green);
+      animation: none;
+    }
+    .cal-al-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .cal-al-unidad { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--text); }
+    .cal-al-stars  { font-size: 13px; letter-spacing: -2px; }
+    .cal-al-fecha  { font-size: 10px; color: #7f1d1d; margin-bottom: 6px; }
+    .cal-al-tags   { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+    .cal-al-tag    { font-size: 10px; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 2px 7px; color: #fca5a5; }
+
+    /* Temporizador */
+    .cal-timer     { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+    .cal-timer-txt { font-family: var(--font-mono); font-size: 11px; font-weight: 700; min-width: 70px; }
+    .cal-timer-txt.urgente { color: var(--red); }
+    .cal-timer-txt.ok      { color: var(--amber); }
+    .cal-timer-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .cal-timer-fill { height: 100%; border-radius: 2px; transition: width 1s linear, background-color 1s; }
+
+    /* Botón atender */
+    .btn-cal-atender {
+      width: 100%; padding: 7px;
+      background: rgba(239,68,68,0.15); border: 1px solid var(--red);
+      border-radius: var(--radius); color: #fca5a5;
+      font-size: 11px; font-weight: 700; font-family: var(--font-ui);
+      cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s;
+    }
+    .btn-cal-atender:hover:not(:disabled) { background: rgba(239,68,68,0.28); }
+    .btn-cal-atender.atendido {
+      background: rgba(16,185,129,0.1); border-color: var(--green);
+      color: #6ee7b7; cursor: default;
+    }
+
+    /* Sin alertas */
+    .cal-ok {
+      text-align: center; padding: 12px 8px;
+      background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2);
+      border-radius: var(--radius); font-size: 11px; color: var(--green);
+    }
+
+    /* Stats row del día */
+    .cal-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+    .cal-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 6px; text-align: center; }
+    .cal-stat-n { font-family: var(--font-mono); font-size: 20px; font-weight: 700; line-height: 1; display: block; }
+    .cal-stat-l { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-top: 2px; }
+    .cal-stat-n.verde { color: var(--green); }
+    .cal-stat-n.rojo  { color: var(--red); }
+    .cal-stat-n.azul  { color: var(--blue); }
+
+    /* Ranking */
+    .cal-rank-item {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 7px 9px; margin-bottom: 5px;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    .cal-rank-item:hover { border-color: var(--border-lit); }
+    .cal-rank-pos  { font-size: 10px; color: var(--text-dim); min-width: 16px; }
+    .cal-rank-u    { font-family: var(--font-mono); font-size: 12px; font-weight: 700; flex: 1; }
+    .cal-rank-avg  { font-size: 11px; }
+    .cal-rank-badge { font-size: 9px; padding: 2px 6px; border-radius: 8px; font-weight: 700; }
+    .cal-rank-badge.verde { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+    .cal-rank-badge.rojo  { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .cal-rank-badge.gris  { background: var(--gray-dim); color: var(--gray); border: 1px solid rgba(75,85,99,0.3); }
+
+    /* Tab del header */
+    .cal-tab-btn {
+      background: none; border: none; color: var(--text-dim);
+      font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      padding: 0 10px; height: var(--header-h);
+      border-bottom: 2px solid transparent; transition: all 0.2s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .cal-tab-btn:hover { color: var(--text); }
+    .cal-tab-btn.activo { color: var(--amber); border-bottom-color: var(--amber); }
+    .cal-tab-btn .cal-badge {
+      background: var(--red); color: #fff;
+      font-size: 9px; font-weight: 700; border-radius: 8px;
+      padding: 1px 5px; display: none;
+    }
+    .cal-tab-btn .cal-badge.visible { display: inline; }
+
+    /* Vista del panel de calificaciones */
+    #calView { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
+    #calView.activo { display: flex; }
+
+    /* Modal historial */
+    #cal-modal-hist {
+      position: fixed; inset: 0; z-index: 5000;
+      background: rgba(0,0,0,0.75);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cal-hist-inner {
+      background: var(--bg-panel); border: 1px solid var(--border-lit);
+      border-radius: 10px; padding: 20px; width: 320px; max-height: 80vh;
+      overflow-y: auto;
+    }
+    .cal-hist-title { font-size: 13px; font-weight: 700; color: var(--amber); margin: 0 0 14px; display: flex; justify-content: space-between; }
+    .cal-hist-close { background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; padding: 0; }
+    .cal-hist-item { background: var(--bg-card); border-radius: var(--radius); padding: 8px 10px; margin-bottom: 6px; border-left: 3px solid var(--border); }
+    .cal-hist-item.alta  { border-left-color: var(--green); }
+    .cal-hist-item.media { border-left-color: var(--amber); }
+    .cal-hist-item.baja  { border-left-color: var(--red); }
+
   </style>
 </head>
 <body>
@@ -533,6 +658,9 @@
       <span class="hdr-role" id="hdrRole">Operadora</span>
     </div>
 
+    <button class="cal-tab-btn" id="calTabBtn" onclick="toggleCalView()">
+      ⭐ CALIF <span class="cal-badge" id="calBadge">0</span>
+    </button>
     <button class="hbtn hbtn-fds" id="fdsBtn" onclick="toggleFDS()">
       ⚠ FDS
     </button>
@@ -583,6 +711,35 @@
       </div>
       <div id="unitsList">
         <div class="u-empty">Sin unidades conectadas</div>
+      </div>
+    </div>
+
+    <!-- ══ PANEL CALIFICACIONES (se muestra al activar el tab) ══ -->
+    <div id="calView">
+      <!-- Stats del día -->
+      <div class="ps-cal">
+        <div class="ps-title">Resumen de hoy</div>
+        <div class="cal-stats-row">
+          <div class="cal-stat"><span class="cal-stat-n azul" id="calStatTotal">0</span><span class="cal-stat-l">Califics.</span></div>
+          <div class="cal-stat"><span class="cal-stat-n rojo"  id="calStatAlertas">0</span><span class="cal-stat-l">Alertas</span></div>
+          <div class="cal-stat"><span class="cal-stat-n verde" id="calStatExcel">0</span><span class="cal-stat-l">Excelent.</span></div>
+        </div>
+      </div>
+
+      <!-- Alertas activas -->
+      <div class="ps-cal" style="flex:0 0 auto">
+        <div class="ps-title">🚨 Alertas activas</div>
+        <div id="calAlertasContainer">
+          <div class="cal-ok">✅ Sin alertas activas</div>
+        </div>
+      </div>
+
+      <!-- Ranking -->
+      <div class="ps-cal" style="flex:1;overflow-y:auto">
+        <div class="ps-title">🏆 Rendimiento conductores</div>
+        <div id="calRankingContainer">
+          <div style="font-size:11px;color:var(--text-dim);text-align:center;padding:10px">Sin datos aún</div>
+        </div>
       </div>
     </div>
 
@@ -760,6 +917,8 @@ let auth, rtdb, db;
 async function verifyAccess(user) {
   S.role = 'operadora';
   showApp();
+  // Iniciar sistema de calificaciones en tiempo real
+  if (typeof iniciarSistemaCalificaciones === 'function') iniciarSistemaCalificaciones();
 }
 
 auth && auth.onAuthStateChanged(async (user) => {
@@ -1289,6 +1448,8 @@ function showLogin() {
    🧹  TEARDOWN — limpieza total en logout
 ──────────────────────────────────────── */
 function tearDown() {
+  // Limpiar sistema de calificaciones
+  if (typeof destruirSistemaCalificaciones === 'function') destruirSistemaCalificaciones();
   // Detach TODOS los listeners de cada ref registrada
   // ref.off() sin argumentos desconecta absolutamente todos los callbacks
   const refsVistas = new Set();
@@ -1379,7 +1540,289 @@ console.log('%c[SITIOS HIDALGO BASE v5.0]%c Sistema listo — Nochixtlán, Oaxac
   'color:#f59e0b;font-weight:bold', 'color:#64748b');
 </script>
 
+<script>
+
+// ══════════════════════════════════════════════════════════════
+// SISTEMA DE CALIFICACIONES — App Base Central
+// ══════════════════════════════════════════════════════════════
+const CAL_TIEMPO_ATENCION = 10 * 60 * 1000; // 10 minutos
+let _calListeners    = [];
+let _calIntervalos   = {};
+let _calMetricas     = {};
+let _calAlertasData  = {};
+let _calHoy          = [];
+let _calViewActivo   = false;
+
+// ── Iniciar (llamar después de login exitoso) ─────────────────
+function iniciarSistemaCalificaciones() {
+  // Listener alertas activas
+  const refAl = rtdb.ref('/alertas_activas');
+  const fnAl  = refAl.on('value', snap => {
+    _calAlertasData = snap.val() || {};
+    _renderCalPanel();
+    // Actualizar badge en header
+    const pendientes = Object.values(_calAlertasData).filter(a => !a.atendida).length;
+    const badge = document.getElementById('calBadge');
+    if (badge) {
+      badge.textContent = pendientes;
+      badge.classList.toggle('visible', pendientes > 0);
+    }
+  });
+  _calListeners.push(() => refAl.off('value', fnAl));
+
+  // Listener métricas conductores
+  const refMet = rtdb.ref('/metricas_conductores');
+  const fnMet  = refMet.on('value', snap => {
+    _calMetricas = snap.val() || {};
+    _renderCalPanel();
+  });
+  _calListeners.push(() => refMet.off('value', fnMet));
+
+  // Listener calificaciones de hoy
+  const inicioHoy = new Date(); inicioHoy.setHours(0,0,0,0);
+  const refCal = rtdb.ref('/calificaciones')
+    .orderByChild('timestamp').startAt(inicioHoy.getTime());
+  const fnCal  = refCal.on('value', snap => {
+    _calHoy = [];
+    snap.forEach(c => _calHoy.push({ id: c.key, ...c.val() }));
+    _renderCalPanel();
+  });
+  _calListeners.push(() => refCal.off('value', fnCal));
+}
+
+// ── Destruir (llamar al logout) ───────────────────────────────
+function destruirSistemaCalificaciones() {
+  _calListeners.forEach(fn => fn());
+  _calListeners = [];
+  Object.values(_calIntervalos).forEach(clearInterval);
+  _calIntervalos = {};
+}
+
+// ── Toggle vista ──────────────────────────────────────────────
+function toggleCalView() {
+  _calViewActivo = !_calViewActivo;
+  const calView   = document.getElementById('calView');
+  const leftPanel = document.getElementById('leftPanel');
+  const tabBtn    = document.getElementById('calTabBtn');
+  if (_calViewActivo) {
+    calView.classList.add('activo');
+    leftPanel.style.display = 'none';
+    tabBtn.classList.add('activo');
+  } else {
+    calView.classList.remove('activo');
+    leftPanel.style.display = '';
+    tabBtn.classList.remove('activo');
+  }
+}
+
+// ── Render principal del panel ────────────────────────────────
+function _renderCalPanel() {
+  _renderCalStats();
+  _renderCalAlertas();
+  _renderCalRanking();
+}
+
+function _renderCalStats() {
+  const total   = _calHoy.length;
+  const alertas = _calHoy.filter(c => c.estrellas <= 3).length;
+  const excel   = _calHoy.filter(c => c.estrellas === 5).length;
+  const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  el('calStatTotal',   total);
+  el('calStatAlertas', alertas);
+  el('calStatExcel',   excel);
+}
+
+function _renderCalAlertas() {
+  const container = document.getElementById('calAlertasContainer');
+  if (!container) return;
+
+  const alertas = Object.entries(_calAlertasData)
+    .map(([id, v]) => ({ id, ...v }))
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  if (alertas.length === 0) {
+    container.innerHTML = '<div class="cal-ok">✅ Sin alertas activas</div>';
+    return;
+  }
+
+  container.innerHTML = alertas.map(a => {
+    const estOk  = '★'.repeat(a.estrellas) + '☆'.repeat(5 - a.estrellas);
+    const fecha  = new Date(a.timestamp).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const tags   = (a.etiquetas || []).map(t =>
+      `<span class="cal-al-tag">${t.replace(/_/g,' ')}</span>`).join('');
+    const atClass = a.atendida ? 'atendida' : '';
+    const btnClass = a.atendida ? 'atendido' : '';
+    const btnTxt   = a.atendida ? '✅ Atendida' : '📞 Marcar como atendida';
+    return `
+      <div class="cal-alerta ${atClass}" id="cal-card-${a.id}">
+        <div class="cal-al-header">
+          <span class="cal-al-unidad">🚕 U-${a.unidadNumero || '—'}</span>
+          <span class="cal-al-stars">${estOk}</span>
+        </div>
+        <div class="cal-al-fecha">Viaje finalizado ${fecha}</div>
+        ${tags ? `<div class="cal-al-tags">${tags}</div>` : ''}
+        <div class="cal-timer" id="cal-timer-${a.id}">
+          <span class="cal-timer-txt ${a.atendida ? '' : 'urgente'}" id="cal-ttxt-${a.id}">
+            ${a.atendida ? '✅ Atendida' : '—'}
+          </span>
+          <div class="cal-timer-bar">
+            <div class="cal-timer-fill" id="cal-tfill-${a.id}" style="width:100%;background:var(--red)"></div>
+          </div>
+        </div>
+        <button class="btn-cal-atender ${btnClass}" data-id="${a.id}"
+                onclick="calAtender('${a.id}')" ${a.atendida ? 'disabled' : ''}>
+          ${btnTxt}
+        </button>
+      </div>`;
+  }).join('');
+
+  // Iniciar temporizadores
+  _iniciarTimers(alertas);
+}
+
+function _iniciarTimers(alertas) {
+  Object.values(_calIntervalos).forEach(clearInterval);
+  _calIntervalos = {};
+
+  alertas.forEach(a => {
+    if (a.atendida || !a.tiempoLimiteAtencion) return;
+    const tick = () => {
+      const txt  = document.getElementById(`cal-ttxt-${a.id}`);
+      const fill = document.getElementById(`cal-tfill-${a.id}`);
+      if (!txt || !fill) { clearInterval(_calIntervalos[a.id]); return; }
+      const resta = a.tiempoLimiteAtencion - Date.now();
+      const pct   = Math.max(0, Math.min(100, resta / CAL_TIEMPO_ATENCION * 100));
+      if (resta <= 0) {
+        txt.textContent = '⚠ TIEMPO VENCIDO';
+        txt.className   = 'cal-timer-txt urgente';
+        fill.style.width = '0%';
+        fill.style.background = '#7f1d1d';
+        clearInterval(_calIntervalos[a.id]);
+        return;
+      }
+      const m = Math.floor(resta / 60000);
+      const s = Math.floor((resta % 60000) / 1000);
+      txt.textContent = `${m}:${String(s).padStart(2,'0')} restante`;
+      txt.className   = `cal-timer-txt ${pct < 30 ? 'urgente' : 'ok'}`;
+      fill.style.width = pct + '%';
+      fill.style.background = pct > 60 ? '#f59e0b' : pct > 30 ? '#eab308' : '#ef4444';
+    };
+    tick();
+    _calIntervalos[a.id] = setInterval(tick, 1000);
+  });
+}
+
+function _renderCalRanking() {
+  const container = document.getElementById('calRankingContainer');
+  if (!container) return;
+
+  const ranking = Object.entries(_calMetricas)
+    .filter(([, m]) => m.totalCalificaciones >= 1)
+    .map(([id, m]) => ({
+      id,
+      unidad:    id.replace('unidad','').split('@')[0],
+      promedio:  m.promedioEstrellas || 0,
+      total:     m.totalCalificaciones || 0,
+      alertas:   m.alertasRojas || 0,
+      bonos:     m.bonosAcumulados || 0
+    }))
+    .sort((a, b) => b.promedio - a.promedio)
+    .slice(0, 10);
+
+  if (ranking.length === 0) {
+    container.innerHTML = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:10px">Sin datos aún</div>';
+    return;
+  }
+
+  container.innerHTML = ranking.map((c, i) => {
+    const est   = '★'.repeat(Math.round(c.promedio)) + '☆'.repeat(5 - Math.round(c.promedio));
+    const bCls  = c.promedio >= 4.5 ? 'verde' : c.alertas > 2 ? 'rojo' : 'gris';
+    const bTxt  = c.promedio >= 4.5 ? `+${c.bonos} bonos` : c.alertas > 2 ? `${c.alertas} alertas` : `${c.promedio.toFixed(1)}`;
+    return `<div class="cal-rank-item" onclick="verHistorialCal('${c.id}','${c.unidad}')">
+      <span class="cal-rank-pos">#${i+1}</span>
+      <span class="cal-rank-u">U-${c.unidad}</span>
+      <span class="cal-rank-avg">${est}</span>
+      <span class="cal-rank-badge ${bCls}">${bTxt}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Marcar alerta como atendida ───────────────────────────────
+async function calAtender(viajeId) {
+  try {
+    await rtdb.ref(`/alertas_activas/${viajeId}`).update({ atendida: true });
+    await rtdb.ref(`/calificaciones/${viajeId}`).update({
+      atendida: true, timestampAtencion: Date.now()
+    });
+  } catch(e) {
+    console.error('[Cal] Error atender:', e);
+    alert('Error al marcar como atendida');
+  }
+}
+
+// ── Modal historial ───────────────────────────────────────────
+async function verHistorialCal(conductorId, unidadNumero) {
+  const modal = document.getElementById('cal-modal-hist');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  document.getElementById('cal-hist-titulo').textContent = `Historial — U-${unidadNumero}`;
+
+  const met = _calMetricas[conductorId] || {};
+  document.getElementById('cal-hist-stats').innerHTML = `
+    <div class="cal-stat"><span class="cal-stat-n azul">${(met.promedioEstrellas||0).toFixed(1)}</span><span class="cal-stat-l">Promedio</span></div>
+    <div class="cal-stat"><span class="cal-stat-n rojo">${met.alertasRojas||0}</span><span class="cal-stat-l">Alertas</span></div>
+    <div class="cal-stat"><span class="cal-stat-n verde">${met.bonosAcumulados||0}</span><span class="cal-stat-l">Bonos</span></div>`;
+
+  document.getElementById('cal-hist-lista').innerHTML = '<p style="font-size:11px;color:var(--text-dim)">Cargando...</p>';
+
+  try {
+    const snap = await rtdb.ref('/calificaciones')
+      .orderByChild('conductorId').equalTo(conductorId)
+      .limitToLast(20).get();
+    const items = [];
+    snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+    if (items.length === 0) {
+      document.getElementById('cal-hist-lista').innerHTML = '<p style="font-size:11px;color:var(--text-dim);text-align:center">Sin calificaciones</p>';
+      return;
+    }
+    document.getElementById('cal-hist-lista').innerHTML = items.map(c => {
+      const cls  = c.estrellas >= 4 ? 'alta' : c.estrellas >= 3 ? 'media' : 'baja';
+      const est  = '★'.repeat(c.estrellas) + '☆'.repeat(5 - c.estrellas);
+      const fch  = new Date(c.timestamp).toLocaleString('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+      const tags = (c.etiquetas||[]).map(t => t.replace(/_/g,' ')).join(' · ');
+      return `<div class="cal-hist-item ${cls}">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+          <span style="font-size:14px">${est}</span>
+          <span style="font-size:10px;color:var(--text-dim)">${fch}</span>
+        </div>
+        ${tags ? `<div style="font-size:10px;color:var(--text-dim)">${tags}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('cal-hist-lista').innerHTML = '<p style="font-size:11px;color:var(--red)">Error al cargar</p>';
+  }
+}
+
+function cerrarHistorialCal() {
+  const modal = document.getElementById('cal-modal-hist');
+  if (modal) modal.style.display = 'none';
+}
+
+</script>
 <!-- SOS System -->
 <script src="sos-base.js" defer></script>
+
+<!-- MODAL HISTORIAL CONDUCTOR -->
+<div id="cal-modal-hist" style="display:none">
+  <div class="cal-hist-inner">
+    <div class="cal-hist-title">
+      <span id="cal-hist-titulo">Historial</span>
+      <button class="cal-hist-close" onclick="cerrarHistorialCal()">✕</button>
+    </div>
+    <div id="cal-hist-stats" class="cal-stats-row" style="margin-bottom:14px"></div>
+    <div id="cal-hist-lista"></div>
+  </div>
+</div>
+
 </body>
 </html>
