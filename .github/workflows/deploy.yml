@@ -1,0 +1,93 @@
+name: Deploy a Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main        # Deploy a producción en cada push a main
+  pull_request:
+    branches:
+      - main        # Preview channel en PRs
+
+jobs:
+  # ──────────────────────────────────────────────────────
+  # JOB 1: Deploy a producción (solo en push a main)
+  # ──────────────────────────────────────────────────────
+  deploy-prod:
+    name: 🚀 Deploy producción
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repo (con submódulos)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive   # Necesario para conductor/ y APP_USUARIO/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias de Cloud Functions
+        run: npm ci
+        working-directory: functions
+
+      - name: Deploy App Usuario (hosting:usuario)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: sitios-hidalgo-gps
+          target: usuario
+          channelId: live
+
+      - name: Deploy App Conductor (hosting:conductor)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: sitios-hidalgo-gps
+          target: conductor
+          channelId: live
+
+      - name: Deploy Panel Base (hosting:base)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: sitios-hidalgo-gps
+          target: base
+          channelId: live
+
+      - name: Deploy Cloud Functions
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: sitios-hidalgo-gps
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
+
+  # ──────────────────────────────────────────────────────
+  # JOB 2: Preview channel en Pull Requests
+  # ──────────────────────────────────────────────────────
+  deploy-preview:
+    name: 🔍 Preview PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repo (con submódulos)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Deploy preview — App Usuario
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: sitios-hidalgo-gps
+          target: usuario
+          # Sin channelId → crea preview channel automático con URL única
