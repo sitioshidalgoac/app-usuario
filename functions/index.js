@@ -40,6 +40,13 @@ const CONFIG = {
 // UTILIDADES
 // ─────────────────────────────────────────────
 
+/** Normaliza status a mayúsculas para comparaciones consistentes
+ *  La app conductor envía LIBRE/OCUPADO/SOS/OFFLINE (mayúsculas).
+ *  Esta función protege contra valores mixtos o heredados. */
+function normStatus(s) {
+  return String(s || "").toUpperCase().trim();
+}
+
 /** Formatea ms a "Xh Ym" */
 function formatDuracion(ms) {
   const h = Math.floor(ms / 3600000);
@@ -94,21 +101,22 @@ exports.verificarInactividad = functions
     const aOffline  = [];
 
     snapshot.forEach(child => {
-      const data    = child.val();
+      const data     = child.val();
       const ultimaCx = data.timestamp || data.ultimaConexion || 0;
       const elapsed  = ahora - ultimaCx;
+      const status   = normStatus(data.status);
 
       if (elapsed > CONFIG.limiteInactividad) {
         aArchivar.push({ key: child.key, data, elapsed });
-      } else if (elapsed > CONFIG.limiteOffline && data.status !== "offline") {
+      } else if (elapsed > CONFIG.limiteOffline && status !== "OFFLINE") {
         aOffline.push({ key: child.key, data, elapsed });
       }
     });
 
-    // Marcar offline
+    // Marcar OFFLINE (mayúsculas: consistente con la app conductor)
     const promesasOffline = aOffline.map(({ key, elapsed }) => {
-      console.log(`[inactividad] ${key} → offline (${formatDuracion(elapsed)} sin señal)`);
-      return db.ref(`unidades/${key}/status`).set("offline");
+      console.log(`[inactividad] ${key} → OFFLINE (${formatDuracion(elapsed)} sin señal)`);
+      return db.ref(`unidades/${key}/status`).set("OFFLINE");
     });
 
     // Archivar y eliminar
@@ -224,12 +232,12 @@ exports.limpiarDatos = functions
 exports.alertaSOS = functions
   .database.ref("unidades/{unitId}/status")
   .onWrite(async (change, context) => {
-    const antes  = change.before.val();
-    const ahora  = change.after.val();
+    const antes  = normStatus(change.before.val());
+    const ahora  = normStatus(change.after.val());
     const unitId = context.params.unitId;
 
-    // Solo al ENTRAR en SOS
-    if (ahora !== "sos" || antes === "sos") return null;
+    // Solo al ENTRAR en SOS (la app envía "SOS" en mayúsculas)
+    if (ahora !== "SOS" || antes === "SOS") return null;
 
     const unitSnap = await db.ref(`unidades/${unitId}`).once("value");
     const unit     = unitSnap.val() || {};
@@ -303,10 +311,10 @@ exports.reporteDiario = functions
     const activas   = activasSnap.val()   || {};
     const inactivas = inactivasSnap.val() || {};
 
-    // Estadísticas por estado
-    const porEstado = { libre: 0, ocupado: 0, descanso: 0, offline: 0, sos: 0 };
+    // Estadísticas por estado (normalizar a minúsculas para las claves del objeto)
+    const porEstado = { LIBRE: 0, OCUPADO: 0, DESCANSO: 0, OFFLINE: 0, SOS: 0 };
     Object.values(activas).forEach(u => {
-      const s = u.status || "offline";
+      const s = normStatus(u.status) || "OFFLINE";
       porEstado[s] = (porEstado[s] || 0) + 1;
     });
 
@@ -366,8 +374,8 @@ exports.reporteDiario = functions
 exports.registrarHistorial = functions
   .database.ref("unidades/{unitId}/status")
   .onWrite(async (change, context) => {
-    const antes  = change.before.val();
-    const nuevo  = change.after.val();
+    const antes  = normStatus(change.before.val());
+    const nuevo  = normStatus(change.after.val());
     const unitId = context.params.unitId;
 
     // Sin cambio real o eliminación → ignorar
@@ -401,14 +409,14 @@ exports.registrarHistorial = functions
 exports.monitorConexion = functions
   .database.ref("unidades/{unitId}/status")
   .onWrite(async (change, context) => {
-    const antes  = change.before.val();
-    const nuevo  = change.after.val();
+    const antes  = normStatus(change.before.val());
+    const nuevo  = normStatus(change.after.val());
     const unitId = context.params.unitId;
 
-    // Detectar conexión (offline/null → activo)
-    const seConecta    = (!antes || antes === "offline") && nuevo && nuevo !== "offline";
-    // Detectar desconexión (activo → offline)
-    const seDesconecta = antes && antes !== "offline" && nuevo === "offline";
+    // Detectar conexión (OFFLINE/null → activo)
+    const seConecta    = (!antes || antes === "OFFLINE") && nuevo && nuevo !== "OFFLINE";
+    // Detectar desconexión (activo → OFFLINE)
+    const seDesconecta = antes && antes !== "OFFLINE" && nuevo === "OFFLINE";
 
     if (!seConecta && !seDesconecta) return null;
 
@@ -450,9 +458,9 @@ exports.estadisticasHora = functions
     const snapshot = await db.ref("unidades").once("value");
     const unidades = snapshot.val() || {};
 
-    const stats = { libre: 0, ocupado: 0, descanso: 0, offline: 0, sos: 0, total: 0 };
+    const stats = { LIBRE: 0, OCUPADO: 0, DESCANSO: 0, OFFLINE: 0, SOS: 0, total: 0 };
     Object.values(unidades).forEach(u => {
-      const s = u.status || "offline";
+      const s = normStatus(u.status) || "OFFLINE";
       stats[s] = (stats[s] || 0) + 1;
       stats.total++;
     });
