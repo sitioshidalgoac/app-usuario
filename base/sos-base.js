@@ -18,6 +18,7 @@
 let sosMarkers = {};      // Marcadores de SOS { sosId: L.Marker }
 let sosAlarmaInterval = null;
 let sosAlarmaContext = null;
+let _sosRef = null;       // Referencia guardada para cleanup
 
 /* ─── INIT LISTENER SOS ────────────────────────── */
 function initListenerSOS() {
@@ -26,11 +27,17 @@ function initListenerSOS() {
     return;
   }
 
+  // Evitar listeners duplicados si se llama más de una vez
+  if (_sosRef) {
+    _sosRef.off();
+    _sosRef = null;
+  }
+
   console.log("🚨 Iniciando listener para alertas SOS...");
 
-  const sosRef = rtdb.ref('alertas_sos');
+  _sosRef = rtdb.ref('alertas_sos');
 
-  sosRef.on('child_added', (snap) => {
+  _sosRef.on('child_added', (snap) => {
     const sosId = snap.key;
     const data = snap.val();
 
@@ -57,7 +64,7 @@ function initListenerSOS() {
     }
   });
 
-  sosRef.on('child_changed', (snap) => {
+  _sosRef.on('child_changed', (snap) => {
     const sosId = snap.key;
     const data = snap.val();
 
@@ -67,7 +74,7 @@ function initListenerSOS() {
     }
   });
 
-  sosRef.on('child_removed', (snap) => {
+  _sosRef.on('child_removed', (snap) => {
     const sosId = snap.key;
     console.log("🗑️ SOS REMOVIDO:", sosId);
     removerSOS(sosId);
@@ -352,6 +359,22 @@ window.addEventListener('load', () => {
   }, 100);
 });
 
+/* ─── DESTROY / CLEANUP ───────────────────────── */
+function destroyListenerSOS() {
+  if (_sosRef) {
+    _sosRef.off();
+    _sosRef = null;
+  }
+  detenerAlarmaSOS();
+  // Limpiar marcadores del mapa
+  Object.keys(sosMarkers).forEach(id => {
+    S.map?.removeLayer(sosMarkers[id]);
+    delete sosMarkers[id];
+  });
+  console.log("🧹 SOS listener destruido");
+}
+
 /* ─── EXPORTAR FUNCIONES GLOBALES ────────────– */
-window.atenderSOS = atenderSOS;
-window.sosMarkers = sosMarkers;
+window.atenderSOS        = atenderSOS;
+window.sosMarkers        = sosMarkers;
+window.destroyListenerSOS = destroyListenerSOS;
