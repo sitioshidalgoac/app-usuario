@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "sitios-hidalgo-gps"
+  },
+  "targets": {
+    "sitios-hidalgo-gps": {
+      "hosting": {
+        "usuario":   ["sitios-hidalgo-gps"],
+        "conductor": ["sitios-hidalgo-conductor"],
+        "base":      ["sitios-hidalgo-base"]
+      }
+    }
+  }
+}
