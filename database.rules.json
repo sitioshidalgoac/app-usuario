@@ -1,8 +1,16 @@
 {
   "rules": {
-    ".read": false,
+    ".read":  false,
     ".write": false,
 
+    // ─── HELPERS (se usan en múltiples reglas) ──────────────────────────
+    // rol: auth.token.role
+    // isPresidente : auth.token.role === 'presidente'
+    // isOperadora  : auth.token.role === 'operadora'
+    // isVigilancia : auth.token.role === 'vigilancia'
+    // isStaff      : presidente | operadora | vigilancia
+
+    // ─── UNIDADES (GPS en tiempo real) ─────────────────────────────────
     "unidades": {
       ".read": "auth != null",
       "$unitId": {
@@ -10,6 +18,13 @@
       }
     },
 
+    // ─── UNIDADES INACTIVAS (archivo automático) ────────────────────────
+    "unidades_inactivas": {
+      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
+      ".write": false
+    },
+
+    // ─── CONDUCTORES (perfiles y calificaciones) ────────────────────────
     "conductores": {
       ".read": "auth != null",
       "$conductorId": {
@@ -17,31 +32,82 @@
       }
     },
 
+    // ─── MÉTRICAS DE CONDUCTORES ────────────────────────────────────────
+    "metricas_conductores": {
+      ".read": "auth != null",
+      ".write": false
+    },
+
+    // ─── SOLICITUDES DE CLIENTES (app usuario) ──────────────────────────
+    "solicitudes_clientes": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    // ─── SOLICITUDES (conductor recibe/actualiza) ───────────────────────
+    "solicitudes": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    // ─── ALERTAS SISTEMA ────────────────────────────────────────────────
     "alertas": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
 
+    // ─── ALERTAS SOS ────────────────────────────────────────────────────
+    // Escritura abierta a autenticados: usuarios y conductores pueden enviar SOS
     "alertas_sos": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
 
-    "sistema": {
+    // ─── MENSAJES DE RADIO ──────────────────────────────────────────────
+    "mensajes": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
 
-    "bases": {
-      ".read": "auth != null",
-      ".write": "auth != null && auth.token.role === 'presidente'"
+    // ─── HISTORIAL DE VIAJES (conductor) ────────────────────────────────
+    "historial": {
+      "$unitId": {
+        ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || auth.uid === $unitId)",
+        ".write": "auth != null && (auth.token.role === 'presidente' || auth.uid === $unitId)"
+      }
     },
 
-    "despacho": {
-      ".read": "auth != null",
-      ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')"
+    // ─── HISTORIAL DE VIAJES v6 ─────────────────────────────────────────
+    "historial_viajes": {
+      "$unitId": {
+        ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || auth.uid === $unitId)",
+        ".write": "auth != null && (auth.token.role === 'presidente' || auth.uid === $unitId)"
+      }
     },
 
+    // ─── HISTORIAL DE POSICIONES (cola offline) ─────────────────────────
+    "historial_pos": {
+      "$unitId": {
+        ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
+        ".write": "auth != null && (auth.token.role === 'presidente' || auth.uid === $unitId)"
+      }
+    },
+
+    // ─── VIAJES COMPARTIDOS (enlace público de tracking) ────────────────
+    // Lectura pública (el receptor del enlace no está autenticado)
+    // Escritura solo para usuarios autenticados
+    "viajes_compartidos": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+
+    // ─── CALIFICACIONES ─────────────────────────────────────────────────
+    "calificaciones": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    // ─── PRESENCIA ──────────────────────────────────────────────────────
     "presencia": {
       ".read": "auth != null",
       "$conductorId": {
@@ -49,9 +115,52 @@
       }
     },
 
+    // ─── BASES ──────────────────────────────────────────────────────────
+    "bases": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.role === 'presidente'"
+    },
+
+    // ─── DESPACHO ───────────────────────────────────────────────────────
+    "despacho": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')"
+    },
+
+    // ─── SISTEMA ────────────────────────────────────────────────────────
+    "sistema": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    // ─── CONFIGURACIÓN ──────────────────────────────────────────────────
     "config": {
       ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'vigilancia')",
       ".write": "auth != null && auth.token.role === 'presidente'"
+    },
+
+    // ─── CONEXIONES (bitácora de entradas/salidas) ───────────────────────
+    "conexiones": {
+      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
+      ".write": false
+    },
+
+    // ─── REPORTES DIARIOS ───────────────────────────────────────────────
+    "reportes": {
+      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
+      ".write": false
+    },
+
+    // ─── ESTADÍSTICAS HORARIAS ──────────────────────────────────────────
+    "estadisticas": {
+      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
+      ".write": false
+    },
+
+    // ─── LOG DE EVENTOS (auditoría) ─────────────────────────────────────
+    "log_eventos": {
+      ".read": "auth != null && auth.token.role === 'presidente'",
+      ".write": false
     }
   }
-} 
+}
