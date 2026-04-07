@@ -30,7 +30,7 @@ jobs:
           cache: 'npm'
 
       - name: Instalar dependencias de Cloud Functions
-        run: npm install
+        run: npm ci
         working-directory: functions
 
       - name: Deploy App Usuario (hosting:usuario)
