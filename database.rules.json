@@ -51,8 +51,12 @@
     // ─── SOLICITUDES (conductor recibe/actualiza) ───────────────────────
     // Solo el conductor asignado puede actualizar su solicitud.
     // Staff puede crear/modificar/eliminar cualquiera.
+    // Índices para queries eficientes en servidor (sin descargar colección completa):
+    //   - 'unidadId' → _solicitudesRef1: viajes del conductor, Firebase filtra en servidor
+    //   - 'estado'   → _solicitudesRef2: viajes pendientes sin asignar
     "solicitudes": {
       ".read": "auth != null",
+      ".indexOn": ["estado", "unidadId"],
       "$solId": {
         ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || (data.exists() && data.child('conductorId').val() === auth.uid))"
       }
