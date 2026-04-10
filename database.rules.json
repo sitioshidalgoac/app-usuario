@@ -39,21 +39,30 @@
     },
 
     // ─── SOLICITUDES DE CLIENTES (app usuario) ──────────────────────────
+    // Cada usuario solo puede escribir solicitudes con su propio uid.
+    // Staff puede leer/escribir cualquiera (para gestión de despacho).
     "solicitudes_clientes": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      "$solId": {
+        ".write": "auth != null && (newData.child('uid').val() === auth.uid || !newData.exists() || auth.token.role === 'presidente' || auth.token.role === 'operadora')"
+      }
     },
 
     // ─── SOLICITUDES (conductor recibe/actualiza) ───────────────────────
+    // Solo el conductor asignado puede actualizar su solicitud.
+    // Staff puede crear/modificar/eliminar cualquiera.
     "solicitudes": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      "$solId": {
+        ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || (data.exists() && data.child('conductorId').val() === auth.uid))"
+      }
     },
 
     // ─── ALERTAS SISTEMA ────────────────────────────────────────────────
+    // Solo staff puede escribir alertas del sistema (no usuarios ni conductores).
     "alertas": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || auth.token.role === 'vigilancia')"
     },
 
     // ─── ALERTAS SOS ────────────────────────────────────────────────────
@@ -128,9 +137,10 @@
     },
 
     // ─── SISTEMA ────────────────────────────────────────────────────────
+    // Solo el presidente puede modificar configuración del sistema.
     "sistema": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null && auth.token.role === 'presidente'"
     },
 
     // ─── CONFIGURACIÓN ──────────────────────────────────────────────────
