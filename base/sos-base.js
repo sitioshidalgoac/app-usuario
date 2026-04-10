@@ -343,21 +343,9 @@ function inyectarCSS() {
 }
 
 /* ─── INIT AL CARGAR ──────────────────────────– */
-window.addEventListener('load', () => {
-  // Esperar a que Firebase esté inicializado
-  let attempts = 0;
-  const checkInit = setInterval(() => {
-    if (window.rtdb && window.S?.map) {
-      clearInterval(checkInit);
-      inyectarCSS();
-      initListenerSOS();
-      console.log("✅ SOS Listener inicializado");
-    } else if (attempts++ > 50) {
-      clearInterval(checkInit);
-      console.warn("⚠️ Firebase o Mapa no inicializados después de esperar");
-    }
-  }, 100);
-});
+// initListenerSOS() e inyectarCSS() son llamadas desde startListeners()
+// en index.html, donde rtdb y S.map ya están inicializados (post-login).
+// No usar polling aquí — Firebase y el mapa no existen antes del login.
 
 /* ─── DESTROY / CLEANUP ───────────────────────── */
 function destroyListenerSOS() {

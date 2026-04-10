@@ -392,6 +392,69 @@
     .leg-sq  { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
 
     /* ═══════════════════════════════════════
+       BUSCADOR DE DIRECCIONES — Places API
+    ═══════════════════════════════════════ */
+    #searchBox {
+      position: absolute; top: 10px; left: 10px; z-index: 500;
+      display: flex; align-items: center;
+      width: 288px;
+      background: rgba(8,10,14,0.93);
+      border: 1px solid var(--amber);
+      border-radius: var(--radius);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 0 1px rgba(245,158,11,0.12), var(--shadow-lg);
+      transition: box-shadow 0.2s;
+    }
+    #searchBox:focus-within {
+      box-shadow: 0 0 0 2px rgba(245,158,11,0.35), var(--shadow-lg);
+    }
+    #searchBox .sb-icon {
+      padding: 0 9px 0 11px; color: var(--amber);
+      font-size: 15px; flex-shrink: 0; pointer-events: none;
+      line-height: 1;
+    }
+    #searchInput {
+      flex: 1; border: none; background: transparent;
+      color: var(--text); font-family: var(--font-ui);
+      font-size: 13px; font-weight: 500; letter-spacing: 0.3px;
+      padding: 9px 0; outline: none; min-width: 0;
+    }
+    #searchInput::placeholder { color: var(--text-dim); font-weight: 400; }
+    #searchClear {
+      padding: 0 10px; color: var(--text-dim); font-size: 14px;
+      background: none; border: none; cursor: pointer;
+      flex-shrink: 0; display: none; transition: color 0.15s;
+      line-height: 1;
+    }
+    #searchClear:hover { color: var(--amber); }
+    #searchClear.visible { display: block; }
+    /* Google PAC dropdown — Tactical Dark override */
+    .pac-container {
+      background: rgba(15,18,24,0.97) !important;
+      border: 1px solid rgba(245,158,11,0.5) !important;
+      border-top: none !important;
+      border-radius: 0 0 var(--radius) var(--radius) !important;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.7) !important;
+      font-family: var(--font-ui) !important;
+      margin-top: 1px;
+    }
+    .pac-item {
+      border-top: 1px solid var(--border) !important;
+      padding: 8px 12px !important;
+      cursor: pointer !important;
+      color: var(--text-mid) !important;
+      font-family: var(--font-ui) !important;
+      font-size: 12px !important;
+      transition: background 0.1s;
+    }
+    .pac-item:first-child { border-top: none !important; }
+    .pac-item:hover, .pac-item-selected { background: var(--amber-dim) !important; }
+    .pac-item-query { color: var(--text) !important; font-size: 13px !important; font-weight: 600; }
+    .pac-matched { color: var(--amber) !important; font-weight: 700; }
+    .pac-icon, .hdpi .pac-icon { display: none !important; }
+    .pac-logo::after { display: none !important; }
+
+    /* ═══════════════════════════════════════
        SOS MODAL
     ═══════════════════════════════════════ */
     #sosModal {
@@ -746,6 +809,16 @@
     <!-- ══ MAP AREA ══ -->
     <div id="mapWrap">
       <div id="fdsBanner">⚠ SISTEMA FUERA DE SERVICIO — Unidades en espera</div>
+
+      <!-- BUSCADOR PLACES — top-left flotante sobre el mapa -->
+      <div id="searchBox">
+        <span class="sb-icon">⌖</span>
+        <input id="searchInput" type="text"
+               placeholder="Buscar destino en Nochixtlán…"
+               autocomplete="off" spellcheck="false" />
+        <button id="searchClear" title="Limpiar búsqueda">✕</button>
+      </div>
+
       <div id="map"></div>
 
       <div class="map-bar">
@@ -789,6 +862,9 @@
 
 <!-- LEAFLET -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<!-- GOOGLE MAPS PLACES API (solo librería places, sin renderizar tiles de Google) -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEu6dOk9mUqXp52lyY6vBEm4GAsgU0ESU&libraries=places&language=es&region=MX&callback=placesApiReady" async defer></script>
 
 <script>
 /* ================================================================
@@ -973,6 +1049,9 @@ async function doLogout() {
 /* ────────────────────────────────────────
    🗺️  MAPA LEAFLET
 ──────────────────────────────────────── */
+var _placesApiReady = false;  // Google Maps JS cargado
+var _leafletReady   = false;  // Leaflet map inicializado
+
 function initMap() {
   if (S.map) return;
 
@@ -990,6 +1069,89 @@ function initMap() {
 
   drawBases();
   console.log('[Mapa] ✅ Inicializado — Nochixtlán');
+
+  _leafletReady = true;
+  if (_placesApiReady) initPlacesSearch();
+}
+
+/* Callback invocado cuando el script de Google Maps termina de cargar */
+function placesApiReady() {
+  _placesApiReady = true;
+  if (_leafletReady) initPlacesSearch();
+}
+
+/* ────────────────────────────────────────
+   🔍  BUSCADOR PLACES AUTOCOMPLETE
+──────────────────────────────────────── */
+function initPlacesSearch() {
+  if (!window.google || !window.google.maps || !window.google.maps.places) {
+    console.warn('[Places] API no disponible — verifica que la key tenga Places habilitado');
+    return;
+  }
+
+  var input    = document.getElementById('searchInput');
+  var clearBtn = document.getElementById('searchClear');
+  if (!input) return;
+
+  /* Sesgo geográfico: cuadro alrededor de Nochixtlán */
+  var bounds = new google.maps.LatLngBounds(
+    new google.maps.LatLng(17.43, -97.26),   // SW
+    new google.maps.LatLng(17.48, -97.21)    // NE
+  );
+
+  var ac = new google.maps.places.Autocomplete(input, {
+    bounds:               bounds,
+    strictBounds:         false,
+    componentRestrictions: { country: 'mx' },
+    fields:               ['geometry', 'name', 'formatted_address']
+  });
+
+  var destMarker = null;
+
+  ac.addListener('place_changed', function() {
+    var place = ac.getPlace();
+    if (!place.geometry || !place.geometry.location) return;
+
+    var lat = place.geometry.location.lat();
+    var lng = place.geometry.location.lng();
+
+    /* Centrar mapa Leaflet en el destino */
+    S.map.setView([lat, lng], 16);
+
+    /* Marcador de destino — pin amber */
+    if (destMarker) S.map.removeLayer(destMarker);
+    var icon = L.divIcon({
+      html: '<div style="' +
+        'width:14px;height:14px;border-radius:50%;' +
+        'background:#f59e0b;border:2px solid #fff;' +
+        'box-shadow:0 0 0 3px rgba(245,158,11,0.45),0 4px 12px rgba(0,0,0,0.6);' +
+      '"></div>',
+      className:  '',
+      iconAnchor: [7, 7]
+    });
+    destMarker = L.marker([lat, lng], { icon: icon })
+      .addTo(S.map)
+      .bindPopup(
+        '<b style="font-family:\'Rajdhani\',sans-serif;font-size:14px">' +
+        (place.name || 'Destino') + '</b>' +
+        (place.formatted_address
+          ? '<br><small style="color:#94a3b8">' + place.formatted_address + '</small>'
+          : '')
+      )
+      .openPopup();
+
+    clearBtn.classList.add('visible');
+    console.log('[Places] Destino:', place.name, lat, lng);
+  });
+
+  clearBtn.addEventListener('click', function() {
+    input.value = '';
+    clearBtn.classList.remove('visible');
+    if (destMarker) { S.map.removeLayer(destMarker); destMarker = null; }
+    input.focus();
+  });
+
+  console.log('[Places] ✅ Autocomplete activo — Nochixtlán, Oaxaca');
 }
 
 function drawBases() {
@@ -1151,44 +1313,43 @@ function startListeners() {
   listenSOS();
   listenFDS();
   listenConnection();
+  // sos-base.js: inicializar aquí donde rtdb y S.map ya están listos
+  if (typeof inyectarCSS      === 'function') inyectarCSS();
+  if (typeof initListenerSOS  === 'function') initListenerSOS();
+}
+
+/* — Render con debounce: agrupa ráfagas de eventos en un solo repintado — */
+let _renderTimer = null;
+function scheduleRender() {
+  clearTimeout(_renderTimer);
+  _renderTimer = setTimeout(renderPanel, 200);
 }
 
 /* — Unidades en tiempo real — */
 function listenUnidades() {
   const ref = rtdb.ref('unidades');
 
-  ref.on('value', snap => {
-    const fresh = snap.val() || {};
+  // child_added / child_changed: solo descarga el conductor que cambió (no los 76)
+  const onUpsert = snap => {
+    const uid = snap.key;
+    const val = snap.val();
+    if (typeof val !== 'object' || !val) return;
+    S.unidades[uid] = { ...val, unitId: uid };
+    upsertMarker(uid, S.unidades[uid]);
+    scheduleRender();
+  };
 
-    // ⭐ NUEVO: Logs de rastreo
-    console.log('🚖 Conductores recibidos desde Firebase:', fresh);
-    console.log('🔍 Total de unidades:', Object.keys(fresh).length);
+  ref.on('child_added',   onUpsert, err => console.error('[RTDB:unidades:child_added]', err));
+  ref.on('child_changed', onUpsert, err => console.error('[RTDB:unidades:child_changed]', err));
+  ref.on('child_removed', snap => {
+    const uid = snap.key;
+    removeMarker(uid);
+    delete S.unidades[uid];
+    scheduleRender();
+  }, err => console.error('[RTDB:unidades:child_removed]', err));
 
-    // Eliminar unidades que ya no existen
-    Object.keys(S.unidades).forEach(uid => {
-      if (!fresh[uid]) { removeMarker(uid); delete S.unidades[uid]; }
-    });
-
-    // Agregar / actualizar
-    Object.entries(fresh).forEach(([uid, val]) => {
-      if (typeof val !== 'object' || !val) return;
-      S.unidades[uid] = { ...val, unitId: uid };
-      upsertMarker(uid, S.unidades[uid]);
-    });
-
-    // ⭐ NUEVO: Logs de estados
-    const lib = Object.values(fresh).filter(u => u.status === 'LIBRE' && u.online !== false);
-    const ocp = Object.values(fresh).filter(u => u.status === 'OCUPADO');
-    console.log('✅ Taxis LIBRES:', lib.length, lib);
-    console.log('🔴 Taxis OCUPADOS:', ocp.length);
-
-    renderPanel();
-  }, err => {
-    console.error('[RTDB:unidades]', err);
-    setConn(false);
-  });
-
-  S.rtdbRefs.push({ ref, ev: 'value' });
+  // Una sola entrada basta: ref.off() sin args limpia los 3 eventos
+  S.rtdbRefs.push({ ref, ev: 'child_added' });
 }
 
 /* — SOS — */
