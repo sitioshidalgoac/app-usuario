@@ -13,9 +13,15 @@ const BASES = [
   { id:'B7', nombre:'Fresno',                   lat:17.453626, lng:-97.230098, radio:80,  color:'#69F0AE' },
 ];
 
-// Distancia en metros entre dos coordenadas
+// Distancia en metros entre dos coordenadas (fórmula Haversine)
 function calcDistM(lat1, lng1, lat2, lng2) {
-  return Math.hypot(lat1 - lat2, lng1 - lng2) * 111319;
+  const R = 6371000; // radio de la Tierra en metros
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2
+          + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // Base más cercana a una posición
