@@ -14,9 +14,9 @@
 // ║   ⑦ estadisticasHora       — snapshot horario de la flotilla         ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 
-const { onSchedule }     = require("firebase-functions/v2/scheduler");
-const { onValueWritten } = require("firebase-functions/v2/database");
-const admin              = require("firebase-admin");
+const { onSchedule }               = require("firebase-functions/v2/scheduler");
+const { onValueWritten, onValueCreated } = require("firebase-functions/v2/database");
+const admin                        = require("firebase-admin");
 
 if (!admin.apps.length) admin.initializeApp();
 
@@ -74,6 +74,57 @@ async function ejecutarEnLotes(promesas, tamLote = 10) {
     await Promise.all(promesas.slice(i, i + tamLote));
   }
 }
+
+
+// ════════════════════════════════════════════════════════════
+// ⓪ PUENTE SOLICITUDES — TIEMPO REAL
+//    Cuando un pasajero crea /solicitudes_clientes/{solId},
+//    copia el registro a /solicitudes/{solId} para que los
+//    conductores lo reciban. Sin este puente el flujo de
+//    viajes está completamente roto.
+// ════════════════════════════════════════════════════════════
+exports.puenteSolicitud = onValueCreated(
+  { ref: "solicitudes_clientes/{solId}", region: "us-central1" },
+  async (event) => {
+    const sol   = event.data.val();
+    const solId = event.params.solId;
+
+    if (!sol) return;
+    // Evitar re-procesar si ya fue puenteada (idempotencia)
+    if (sol.estado === "PROCESADA") return;
+
+    const ts = Date.now();
+
+    await db.ref(`solicitudes/${solId}`).set({
+      origen_lat:   sol.lat        || null,
+      origen_lng:   sol.lng        || null,
+      destino:      sol.destino    || "",
+      referencia:   sol.referencia || "",
+      cliente:      sol.cliente    || "Cliente",
+      telefono:     sol.telefono   || "",
+      // unidadId: asignada a la base más cercana elegida por la app usuario
+      unidadId:     sol.unitId     || null,
+      conductorId:  null,
+      estado:       "pendiente",
+      baseId:       sol.unitId     || null,
+      solClienteId: solId,
+      timestamp:    ts,
+      creadoEn:     admin.database.ServerValue.TIMESTAMP,
+    });
+
+    // Marcar la solicitud del cliente como procesada
+    await db.ref(`solicitudes_clientes/${solId}/estado`).set("PROCESADA");
+
+    await logEvento("SOLICITUD_PUENTEADA", {
+      solId,
+      cliente:  sol.cliente || "—",
+      destino:  sol.destino || "—",
+      unidadId: sol.unitId  || "sin asignar",
+    });
+
+    console.log(`[puente] ✅ Solicitud ${solId} → /solicitudes/${solId}`);
+  }
+);
 
 
 // ════════════════════════════════════════════════════════════
