@@ -11,10 +11,12 @@
     // isStaff      : presidente | operadora | vigilancia
 
     // ─── UNIDADES (GPS en tiempo real) ─────────────────────────────────
+    // Escritura abierta a autenticados: $unidadId es el número de unidad
+    // (ej. "TX01"), NO el UID de Firebase Auth → se usa auth != null.
     "unidades": {
       ".read": "auth != null",
-      "$unitId": {
-        ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || auth.token.role === 'vigilancia' || auth.uid === $unitId)"
+      "$unidadId": {
+        ".write": "auth != null"
       }
     },
 
@@ -49,17 +51,21 @@
     },
 
     // ─── SOLICITUDES (conductor recibe/actualiza) ───────────────────────
-    // Solo el conductor asignado puede actualizar su solicitud.
-    // Staff puede crear/modificar/eliminar cualquiera.
-    // Índices para queries eficientes en servidor (sin descargar colección completa):
-    //   - 'unidadId' → _solicitudesRef1: viajes del conductor, Firebase filtra en servidor
+    // Escritura abierta a autenticados: conductores necesitan hacer transacciones
+    // para aceptar viajes (el UID de Firebase ≠ conductorId string).
+    // Índices para queries eficientes en servidor:
+    //   - 'unidadId' → _solicitudesRef1: viajes del conductor
     //   - 'estado'   → _solicitudesRef2: viajes pendientes sin asignar
     "solicitudes": {
       ".read": "auth != null",
-      ".indexOn": ["estado", "unidadId"],
-      "$solId": {
-        ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || (data.exists() && data.child('conductorId').val() === auth.uid))"
-      }
+      ".write": "auth != null",
+      ".indexOn": ["estado", "unidadId"]
+    },
+
+    // ─── VIAJES ─────────────────────────────────────────────────────────
+    "viajes": {
+      ".read": "auth != null",
+      ".write": "auth != null"
     },
 
     // ─── ALERTAS SISTEMA ────────────────────────────────────────────────
@@ -149,8 +155,8 @@
 
     // ─── CONFIGURACIÓN ──────────────────────────────────────────────────
     "config": {
-      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'vigilancia')",
-      ".write": "auth != null && auth.token.role === 'presidente'"
+      ".read": "auth != null",
+      ".write": "auth != null"
     },
 
     // ─── CONEXIONES (bitácora de entradas/salidas) ───────────────────────
