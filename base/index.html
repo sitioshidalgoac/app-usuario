@@ -1218,10 +1218,10 @@ function calcBase(lat, lng) {
    🚕  MARCADORES DE UNIDADES
 ──────────────────────────────────────── */
 function unitColor(unitId, data) {
-  if (S.sosActivos[unitId]) return STATUS_COLOR.sos;
-  const offline = (Date.now() - (data.hora_gps || 0)) > OFFLINE_THRESHOLD_MS;
-  if (offline) return STATUS_COLOR.sin_senal;
-  return STATUS_COLOR[data.estado] || STATUS_COLOR.libre;
+  if (S.sosActivos[unitId]) return STATUS_COLOR.SOS;
+  const offline = (Date.now() - (data.hora_gps || data.timestamp || 0)) > OFFLINE_THRESHOLD_MS;
+  if (offline) return STATUS_COLOR.OFFLINE;
+  return STATUS_COLOR[(data.status || '').toUpperCase()] || STATUS_COLOR.LIBRE;
 }
 
 function buildUnitIcon(unitId, data) {
@@ -1248,7 +1248,7 @@ function buildUnitIcon(unitId, data) {
 }
 
 function buildPopup(unitId, data) {
-  const offline = (Date.now() - (data.hora_gps || 0)) > OFFLINE_THRESHOLD_MS;
+  const offline = (Date.now() - (data.hora_gps || data.timestamp || 0)) > OFFLINE_THRESHOLD_MS;
   const base    = (!offline && data.lat && data.lng) ? calcBase(data.lat, data.lng) : null;
   const vel     = data.velocidad != null ? `${Math.round(data.velocidad)} km/h` : '—';
   const ts      = data.hora_gps  ? new Date(data.hora_gps).toLocaleTimeString('es-MX') : '—';
@@ -1438,7 +1438,7 @@ function renderPanel() {
 
   Object.entries(S.unidades).forEach(([uid, d]) => {
     total++;
-    const offline = (now - (d.hora_gps || 0)) > OFFLINE_THRESHOLD_MS;
+    const offline = (now - (d.hora_gps || d.timestamp || 0)) > OFFLINE_THRESHOLD_MS;
     if (offline)           sinSenal++;
     else if (d.status === 'LIBRE')                       libre++;
     else if (d.status === 'OCUPADO' || d.status === 'EN_VIAJE') ocup++;
@@ -1494,7 +1494,7 @@ function renderUnits(now) {
   }
 
   el.innerHTML = entries.map(([uid, d]) => {
-    const offline = (now - (d.hora_gps || 0)) > OFFLINE_THRESHOLD_MS;
+    const offline = (now - (d.hora_gps || d.timestamp || 0)) > OFFLINE_THRESHOLD_MS;
     const isSOS   = !!S.sosActivos[uid];
     const color   = unitColor(uid, d);
     const base    = (!offline && d.lat && d.lng) ? calcBase(d.lat, d.lng) : null;
