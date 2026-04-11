@@ -1,186 +1,20 @@
 {
   "rules": {
-    ".read":  false,
-    ".write": false,
-
-    // ─── HELPERS (se usan en múltiples reglas) ──────────────────────────
-    // rol: auth.token.role
-    // isPresidente : auth.token.role === 'presidente'
-    // isOperadora  : auth.token.role === 'operadora'
-    // isVigilancia : auth.token.role === 'vigilancia'
-    // isStaff      : presidente | operadora | vigilancia
-
-    // ─── UNIDADES (GPS en tiempo real) ─────────────────────────────────
-    // Escritura abierta a autenticados: $unidadId es el número de unidad
-    // (ej. "TX01"), NO el UID de Firebase Auth → se usa auth != null.
     "unidades": {
       ".read": "auth != null",
-      "$unidadId": {
-        ".write": "auth != null"
-      }
+      ".write": "auth != null"
     },
-
-    // ─── UNIDADES INACTIVAS (archivo automático) ────────────────────────
-    "unidades_inactivas": {
-      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
-      ".write": false
-    },
-
-    // ─── CONDUCTORES (perfiles y calificaciones) ────────────────────────
-    "conductores": {
-      ".read": "auth != null",
-      "$conductorId": {
-        ".write": "auth != null && (auth.token.role === 'presidente' || auth.uid === $conductorId)"
-      }
-    },
-
-    // ─── MÉTRICAS DE CONDUCTORES ────────────────────────────────────────
-    "metricas_conductores": {
-      ".read": "auth != null",
-      ".write": false
-    },
-
-    // ─── SOLICITUDES DE CLIENTES (app usuario) ──────────────────────────
-    // Cada usuario solo puede escribir solicitudes con su propio uid.
-    // Staff puede leer/escribir cualquiera (para gestión de despacho).
-    "solicitudes_clientes": {
-      ".read": "auth != null",
-      "$solId": {
-        ".write": "auth != null && (newData.child('uid').val() === auth.uid || !newData.exists() || auth.token.role === 'presidente' || auth.token.role === 'operadora')"
-      }
-    },
-
-    // ─── SOLICITUDES (conductor recibe/actualiza) ───────────────────────
-    // Escritura abierta a autenticados: conductores necesitan hacer transacciones
-    // para aceptar viajes (el UID de Firebase ≠ conductorId string).
-    // Índices para queries eficientes en servidor:
-    //   - 'unidadId' → _solicitudesRef1: viajes del conductor
-    //   - 'estado'   → _solicitudesRef2: viajes pendientes sin asignar
     "solicitudes": {
       ".read": "auth != null",
-      ".write": "auth != null",
-      ".indexOn": ["estado", "unidadId"]
+      ".write": "auth != null"
     },
-
-    // ─── VIAJES ─────────────────────────────────────────────────────────
     "viajes": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
-
-    // ─── ALERTAS SISTEMA ────────────────────────────────────────────────
-    // Solo staff puede escribir alertas del sistema (no usuarios ni conductores).
-    "alertas": {
-      ".read": "auth != null",
-      ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || auth.token.role === 'vigilancia')"
-    },
-
-    // ─── ALERTAS SOS ────────────────────────────────────────────────────
-    // Escritura abierta a autenticados: usuarios y conductores pueden enviar SOS
-    "alertas_sos": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-
-    // ─── MENSAJES DE RADIO ──────────────────────────────────────────────
-    "mensajes": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-
-    // ─── HISTORIAL DE VIAJES (conductor) ────────────────────────────────
-    "historial": {
-      "$unitId": {
-        ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || auth.uid === $unitId)",
-        ".write": "auth != null && (auth.token.role === 'presidente' || auth.uid === $unitId)"
-      }
-    },
-
-    // ─── HISTORIAL DE VIAJES v6 ─────────────────────────────────────────
-    "historial_viajes": {
-      "$unitId": {
-        ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora' || auth.uid === $unitId)",
-        ".write": "auth != null && (auth.token.role === 'presidente' || auth.uid === $unitId)"
-      }
-    },
-
-    // ─── HISTORIAL DE POSICIONES (cola offline) ─────────────────────────
-    "historial_pos": {
-      "$unitId": {
-        ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
-        ".write": "auth != null && (auth.token.role === 'presidente' || auth.uid === $unitId)"
-      }
-    },
-
-    // ─── VIAJES COMPARTIDOS (enlace público de tracking) ────────────────
-    // Lectura pública (el receptor del enlace no está autenticado)
-    // Escritura solo para usuarios autenticados
-    "viajes_compartidos": {
+    "config": {
       ".read": true,
       ".write": "auth != null"
-    },
-
-    // ─── CALIFICACIONES ─────────────────────────────────────────────────
-    "calificaciones": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-
-    // ─── PRESENCIA ──────────────────────────────────────────────────────
-    "presencia": {
-      ".read": "auth != null",
-      "$conductorId": {
-        ".write": "auth != null && auth.uid === $conductorId"
-      }
-    },
-
-    // ─── BASES ──────────────────────────────────────────────────────────
-    "bases": {
-      ".read": "auth != null",
-      ".write": "auth != null && auth.token.role === 'presidente'"
-    },
-
-    // ─── DESPACHO ───────────────────────────────────────────────────────
-    "despacho": {
-      ".read": "auth != null",
-      ".write": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')"
-    },
-
-    // ─── SISTEMA ────────────────────────────────────────────────────────
-    // Solo el presidente puede modificar configuración del sistema.
-    "sistema": {
-      ".read": "auth != null",
-      ".write": "auth != null && auth.token.role === 'presidente'"
-    },
-
-    // ─── CONFIGURACIÓN ──────────────────────────────────────────────────
-    "config": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-
-    // ─── CONEXIONES (bitácora de entradas/salidas) ───────────────────────
-    "conexiones": {
-      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
-      ".write": false
-    },
-
-    // ─── REPORTES DIARIOS ───────────────────────────────────────────────
-    "reportes": {
-      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
-      ".write": false
-    },
-
-    // ─── ESTADÍSTICAS HORARIAS ──────────────────────────────────────────
-    "estadisticas": {
-      ".read": "auth != null && (auth.token.role === 'presidente' || auth.token.role === 'operadora')",
-      ".write": false
-    },
-
-    // ─── LOG DE EVENTOS (auditoría) ─────────────────────────────────────
-    "log_eventos": {
-      ".read": "auth != null && auth.token.role === 'presidente'",
-      ".write": false
     }
   }
 }
