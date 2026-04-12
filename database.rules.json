@@ -1,20 +1,101 @@
 {
   "rules": {
+    // ── Unidades de taxi ──────────────────────────────────────────────────────
+    // Lectura: cualquier usuario autenticado (conductor, base)
+    // Escritura: SOLO el conductor dueño de esa unidad O un operador de base
+    //   - Conductor dueño: email == 'unidad{unitId}@sitiohidalgo.mx'
+    //   - Operador base:   email termina en @sitios-hidalgo.com
     "unidades": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      "$unitId": {
+        ".write": "auth != null && (auth.token.email == 'unidad' + $unitId.toLowerCase() + '@sitiohidalgo.mx' || auth.token.email.endsWith('@sitios-hidalgo.com'))"
+      }
     },
+
+    // ── Solicitudes de despacho ───────────────────────────────────────────────
+    // Conductor confirma/rechaza su despacho; base asigna servicios
     "solicitudes": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
+
+    // ── Viajes activos ────────────────────────────────────────────────────────
     "viajes": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
+
+    // ── Configuración del sistema ─────────────────────────────────────────────
+    // Lectura pública (la app de usuario la consulta sin auth)
+    // Escritura: SOLO operadores de base
     "config": {
       ".read": true,
+      ".write": "auth != null && auth.token.email.endsWith('@sitios-hidalgo.com')"
+    },
+
+    // ── Alertas SOS ───────────────────────────────────────────────────────────
+    // El conductor activa SOS en su propio nodo; base gestiona/limpia todas
+    "alertas_sos": {
+      ".read": "auth != null",
+      "$unitId": {
+        ".write": "auth != null && (auth.token.email == 'unidad' + $unitId.toLowerCase() + '@sitiohidalgo.mx' || auth.token.email.endsWith('@sitios-hidalgo.com'))"
+      }
+    },
+
+    // ── SOS (nodo legacy/alias) ───────────────────────────────────────────────
+    "sos": {
+      ".read": "auth != null",
       ".write": "auth != null"
+    },
+
+    // ── Radio y chat ──────────────────────────────────────────────────────────
+    "radio": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "chat": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    // ── Servicios (despacho interno) ──────────────────────────────────────────
+    "servicios": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "new_servicio": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    // ── Solicitudes de clientes (pasajeros) ───────────────────────────────────
+    // Escritura pública: los pasajeros no tienen Firebase Auth
+    "solicitudes_clientes": {
+      ".read": "auth != null",
+      ".write": true
+    },
+
+    // ── Historial de viajes ───────────────────────────────────────────────────
+    // Conductor escribe su propio historial; base puede corregir/leer todo
+    "historial_viajes": {
+      ".read": "auth != null",
+      "$unitId": {
+        ".write": "auth != null && (auth.token.email == 'unidad' + $unitId.toLowerCase() + '@sitiohidalgo.mx' || auth.token.email.endsWith('@sitios-hidalgo.com'))"
+      }
+    },
+
+    // ── Calificaciones ────────────────────────────────────────────────────────
+    // Escritura pública: pasajeros califican sin auth
+    "calificaciones": {
+      ".read": "auth != null",
+      ".write": true
+    },
+
+    // ── FCM Tokens ────────────────────────────────────────────────────────────
+    // Cualquier dispositivo registra su token para notificaciones push
+    "fcm_tokens": {
+      ".read": "auth != null",
+      ".write": true
     }
   }
 }
