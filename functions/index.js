@@ -18,7 +18,9 @@ const { onSchedule }               = require("firebase-functions/v2/scheduler");
 const { onValueWritten, onValueCreated } = require("firebase-functions/v2/database");
 const admin                        = require("firebase-admin");
 
-if (!admin.apps.length) admin.initializeApp();
+if (!admin.apps.length) admin.initializeApp({
+  databaseURL: "https://sitios-hidalgo-gps-default-rtdb.firebaseio.com"
+});
 
 const db = admin.database();
 
@@ -105,7 +107,7 @@ exports.puenteSolicitud = onValueCreated(
       // unidadId: asignada a la base más cercana elegida por la app usuario
       unidadId:     sol.unitId     || null,
       conductorId:  null,
-      estado:       "pendiente",
+      estado:       "enviado",
       baseId:       sol.unitId     || null,
       solClienteId: solId,
       timestamp:    ts,
