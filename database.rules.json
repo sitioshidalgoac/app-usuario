@@ -13,10 +13,11 @@
     },
 
     // ── Solicitudes de despacho ───────────────────────────────────────────────
-    // Conductor confirma/rechaza su despacho; base asigna servicios
+    // Lectura/escritura pública: APP_USUARIO escribe solicitudes sin auth
+    // y necesita leer el estado de respuesta del conductor
     "solicitudes": {
-      ".read": "auth != null",
-      ".write": "auth != null",
+      ".read": true,
+      ".write": true,
       ".indexOn": ["unidadId", "estado", "conductorId"]
     },
 
