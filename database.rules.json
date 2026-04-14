@@ -6,7 +6,7 @@
     //   - Conductor dueño: email == 'unidad{unitId}@sitiohidalgo.mx'
     //   - Operador base:   email termina en @sitios-hidalgo.com
     "unidades": {
-      ".read": "auth != null",
+      ".read": true,
       "$unitId": {
         ".write": "auth != null && (auth.token.email == 'unidad' + $unitId.toLowerCase() + '@sitiohidalgo.mx' || auth.token.email.endsWith('@sitios-hidalgo.com'))"
       }
@@ -16,7 +16,8 @@
     // Conductor confirma/rechaza su despacho; base asigna servicios
     "solicitudes": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null",
+      ".indexOn": ["unidadId", "estado", "conductorId"]
     },
 
     // ── Viajes activos ────────────────────────────────────────────────────────
