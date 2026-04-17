@@ -217,8 +217,10 @@ exports.limpiarDatos = onSchedule(
       return p.length;
     }
 
-    const msgBorrados = await purgarNodo("mensajes", CONFIG.limiteMensajes);
+    const msgBorrados  = await purgarNodo("mensajes", CONFIG.limiteMensajes);
+    const radioBorrados = await purgarNodo("radio",    CONFIG.limiteMensajes);
     console.log(`[limpieza] Mensajes: ${msgBorrados} eliminados`);
+    console.log(`[limpieza] Radio: ${radioBorrados} eliminados`);
 
     const logBorrados = await purgarNodo("log_eventos", CONFIG.limiteLogEventos);
     console.log(`[limpieza] Log eventos: ${logBorrados} eliminados`);
@@ -248,10 +250,11 @@ exports.limpiarDatos = onSchedule(
       totalBorrados += pExceso.length;
     }
 
-    totalBorrados += msgBorrados + logBorrados + sosBorrar.length;
+    totalBorrados += msgBorrados + radioBorrados + logBorrados + sosBorrar.length;
 
     await logEvento("LIMPIEZA_DIARIA", {
       mensajesBorrados: msgBorrados,
+      radioBorrados,
       logsBorrados:     logBorrados,
       sosBorrados:      sosBorrar.length,
       totalBorrados,

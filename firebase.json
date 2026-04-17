@@ -17,7 +17,7 @@
     {
       "target": "conductor",
       "public": "conductor",
-      "ignore": ["**/node_modules/**", "**/.git/**", "**/README*", "**/package*.json"],
+      "ignore": ["**/node_modules/**", "**/.git/**", "**/README*", "**/CLAUDE*", "**/package*.json"],
       "rewrites": [
         { "source": "**", "destination": "/index.html" }
       ]

@@ -44,10 +44,13 @@
       }
     },
 
-    // ── SOS (nodo legacy/alias) ───────────────────────────────────────────────
+    // ── SOS de usuarios (pasajeros sin auth) ─────────────────────────────────
+    // Escritura pública con validación de estructura para mitigar spam:
+    // el dato DEBE incluir lat, lng, timestamp y telefono.
+    // Lectura: solo autenticados (base/conductores).
     "sos": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "newData.hasChildren(['lat', 'lng', 'timestamp', 'telefono'])"
     },
 
     // ── Radio y chat ──────────────────────────────────────────────────────────
