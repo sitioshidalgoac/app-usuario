@@ -12,10 +12,13 @@
 // ║   ⑤ registrarHistorial     — auditoría de cada cambio de estado      ║
 // ║   ⑥ monitorConexion        — detecta conductores que se desconectan  ║
 // ║   ⑦ estadisticasHora       — snapshot horario de la flotilla         ║
+// ║   ⑧ setConductorPassword   — HTTPS callable: hash+salt en RTDB      ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 
 const { onSchedule }               = require("firebase-functions/v2/scheduler");
 const { onValueWritten, onValueCreated } = require("firebase-functions/v2/database");
+const { onCall, HttpsError }        = require("firebase-functions/v2/https");
+const { createHash, randomBytes }   = require("crypto");
 const admin                        = require("firebase-admin");
 
 if (!admin.apps.length) admin.initializeApp({
@@ -490,5 +493,53 @@ exports.estadisticasHora = onSchedule(
     });
 
     console.log(`[estadisticas] ✅ Snapshot ${clave} — ${stats.total} unidades`);
+  }
+);
+
+// ════════════════════════════════════════════════════════════
+// ⑧ setConductorPassword — HTTPS Callable
+//    Solo operadores de base (@sitios-hidalgo.com) pueden
+//    establecer o resetear la contraseña de una unidad.
+//    Genera salt aleatorio, guarda SHA-256(salt+password) en
+//    /config/conductores/{unit} y actualiza Firebase Auth.
+// ════════════════════════════════════════════════════════════
+exports.setConductorPassword = onCall(
+  { region: "us-central1" },
+  async (request) => {
+    // ── Verificar que el llamante es operador de base ──────────────────
+    if (!request.auth || !request.auth.token.email?.endsWith("@sitios-hidalgo.com")) {
+      throw new HttpsError("permission-denied", "Solo operadores de base pueden cambiar contraseñas");
+    }
+
+    const { unit, password } = request.data;
+    if (!unit || !password || password.length < 6) {
+      throw new HttpsError("invalid-argument", "Se requieren unit y password (mínimo 6 caracteres)");
+    }
+
+    // Normalizar unidad igual que el cliente: sin guiones ni espacios
+    const unitKey = String(unit).toLowerCase().replace(/[^a-z0-9]/g, "");
+    const email   = `unidad${unitKey}@sitiohidalgo.mx`;
+
+    // ── Generar salt aleatorio + SHA-256(salt + password) ─────────────
+    const salt         = randomBytes(16).toString("hex");
+    const hash         = createHash("sha256").update(salt + password).digest("hex");
+
+    // ── Escribir salt+hash en RTDB ─────────────────────────────────────
+    await db.ref(`config/conductores/${unitKey}`).set({ salt, hash });
+
+    // ── Actualizar Firebase Auth con el hash como nueva contraseña ─────
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(email);
+    } catch (err) {
+      if (err.code === "auth/user-not-found") {
+        throw new HttpsError("not-found", `No existe cuenta Firebase Auth para ${email}`);
+      }
+      throw err;
+    }
+    await admin.auth().updateUser(userRecord.uid, { password: hash });
+
+    console.log(`[setConductorPassword] ✅ Contraseña actualizada para ${unitKey}`);
+    return { ok: true, unit: unitKey };
   }
 );

@@ -39,3 +39,6 @@ dist/
 build/
 .firebase/
 .vercel/
+
+# Migration outputs — NEVER commit passwords to version control
+passwords_temporales.csv
