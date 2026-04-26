@@ -73,3 +73,25 @@ activo:  { bg: '#1a6b4a', border: '#2dd4a0' },  // verde = con servicio
 - DT-03 debe hacerse antes de depender de alertas SOS en turno nocturno.
 - DT-04 es la soluci√≥n permanente a los SOS zombie; la limpieza manual de hoy es un parche.
 - DT-05 y DT-06 son cosm√©ticos/UX y no bloquean operaci√≥n.
+
+## DT-08 ó Color inconsistente unidad
+- SÌntoma: unidad aparece verde en panel izquierdo y amarillo en dashboard
+- App: :5005 conductor
+- Prioridad: baja
+- Detectado: 26/04/2026
+
+## DT-09 ó Chat usuario-conductor no funciona
+- SÌntoma: mensajes no se entregan entre :5000 y :5005
+- Prioridad: alta
+- Detectado: 26/04/2026
+
+## DT-10 ó FirebaseError: Missing or insufficient permissions
+- SÌntoma: error en consola :5000 al intentar chat
+- Causa probable: Firestore rules no permiten escritura en colecciÛn chat
+- Prioridad: alta (relacionado DT-09)
+- Detectado: 26/04/2026
+
+## DT-11 ó JSON inv·lido en reporte encabezado :5006
+- SÌntoma: 'el valor JSON recibido no es v·lido' en consola base
+- Prioridad: media
+- Detectado: 26/04/2026
