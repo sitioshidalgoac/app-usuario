@@ -1,0 +1,2978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHidalgo Kué'in — Base Central v4.0</title>
+<!-- Google Maps API — reemplaza con tu clave restringida a shidalgogps.com -->
+<script>window.GOOGLE_MAPS_KEY = 'AIzaSyDEu6dOk9mUqXp52lyY6vBEm4GAsgU0ESU';</script>
+<!-- Firebase compat v10 -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS — TACTICAL DARK THEME
+═══════════════════════════════════════════ */
+:root {
+  --bg0: #0a0c10;
+  --bg1: #0f1117;
+  --bg2: #141720;
+  --bg3: #1c2030;
+  --bg4: #242840;
+  --border: rgba(100,120,200,0.15);
+  --border-hi: rgba(100,150,255,0.35);
+  --text0: #e8eaf6;
+  --text1: #9ba0bc;
+  --text2: #5a6080;
+  --accent: #4f8ef7;
+  --accent2: #7c5af7;
+  --green: #2dd4a0;
+  --red: #f04060;
+  --amber: #f59e0b;
+  --cyan: #22d3ee;
+  --purple: #a78bfa;
+  --font: 'JetBrains Mono', 'Courier New', monospace;
+  --font-ui: system-ui, -apple-system, sans-serif;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.6);
+  --shadow-lg: 0 8px 48px rgba(0,0,0,0.8);
+  --glow-green: 0 0 20px rgba(45,212,160,0.3);
+  --glow-red: 0 0 20px rgba(240,64,96,0.3);
+  --glow-blue: 0 0 20px rgba(79,142,247,0.3);
+  --transition: 0.2s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg0);
+  color: var(--text0);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT GRID
+═══════════════════════════════════════════ */
+#app {
+  display: grid;
+  grid-template-rows: 56px 1fr;
+  grid-template-columns: 300px 1fr 280px;
+  height: 100vh;
+  gap: 0;
+}
+
+/* ═══════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════ */
+#topbar {
+  grid-column: 1 / -1;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+  position: relative;
+  z-index: 1000;
+}
+
+#topbar .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+#topbar .logo svg { width: 28px; height: 28px; }
+
+.logo-badge {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+#topbar .divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
+/* Firebase status */
+#firebase-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+#firebase-status .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text2);
+  transition: background var(--transition), box-shadow var(--transition);
+  flex-shrink: 0;
+}
+#firebase-status.online .dot { background: var(--green); box-shadow: var(--glow-green); }
+#firebase-status.offline .dot { background: var(--red); box-shadow: var(--glow-red); }
+#firebase-status.online .label { color: var(--green); }
+#firebase-status.offline .label { color: var(--red); }
+
+#topbar .spacer { flex: 1; }
+
+/* Clock */
+#clock {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text1);
+  letter-spacing: 0.06em;
+  min-width: 80px;
+  text-align: right;
+}
+
+/* SOS Banner */
+#sos-banner {
+  display: none;
+  position: fixed;
+  top: 56px;
+  left: 0; right: 0;
+  z-index: 9999;
+  background: linear-gradient(90deg, rgba(240,64,96,0.95), rgba(200,20,60,0.95));
+  color: white;
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  animation: sos-pulse 1s ease-in-out infinite;
+  cursor: pointer;
+}
+#sos-banner.active { display: flex; }
+
+@keyframes sos-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+#sos-banner svg { width: 20px; height: 20px; animation: spin 2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Login screen */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.login-card {
+  background: var(--bg2);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  width: 360px;
+  box-shadow: var(--shadow-lg);
+}
+
+.login-card h1 {
+  font-family: var(--font);
+  font-size: 18px;
+  color: var(--accent);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+.login-card p { color: var(--text2); font-size: 12px; margin-bottom: 28px; }
+
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.field input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  color: var(--text0);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition);
+  font-family: var(--font);
+}
+.field input:focus { border-color: var(--accent); }
+
+.btn-login {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity var(--transition);
+  letter-spacing: 0.04em;
+}
+.btn-login:hover { opacity: 0.9; }
+.btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#login-error {
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 10px;
+  min-height: 18px;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════
+   LEFT PANEL — CONTROL
+═══════════════════════════════════════════ */
+#left-panel {
+  background: var(--bg1);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#left-panel::-webkit-scrollbar { width: 4px; }
+#left-panel::-webkit-scrollbar-track { background: transparent; }
+#left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.panel-section {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+}
+
+.section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-title .count-badge {
+  background: var(--bg3);
+  color: var(--text1);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: auto;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  transition: border-color var(--transition);
+}
+.stat-card:hover { border-color: var(--border-hi); }
+
+.stat-value {
+  font-family: var(--font);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+  color: var(--text0);
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.3;
+}
+
+.stat-card.active .stat-value { color: var(--green); text-shadow: var(--glow-green); }
+.stat-card.idle .stat-value { color: var(--amber); }
+.stat-card.offline .stat-value { color: var(--red); }
+.stat-card.sos .stat-value { color: var(--red); text-shadow: var(--glow-red); }
+
+/* Filter tabs */
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 3px;
+  margin-bottom: 10px;
+}
+
+.filter-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 11px;
+  padding: 5px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.filter-tab:hover { color: var(--text0); background: var(--bg3); }
+.filter-tab.active { background: var(--bg4); color: var(--text0); font-weight: 600; }
+
+/* Archived units banner */
+#archived-banner {
+  display: none;
+  flex-direction: column;
+  margin: 4px 0 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+#archived-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--bg2);
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text2);
+  border: none;
+  width: 100%;
+  text-align: left;
+  gap: 6px;
+}
+#archived-toggle:hover { background: var(--bg3); color: var(--text1); }
+#archived-toggle .arc-icon { font-size: 13px; }
+#archived-toggle .arc-count {
+  background: rgba(245,158,11,0.15);
+  color: var(--amber);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 600;
+  font-size: 11px;
+}
+#archived-list {
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--bg1);
+  max-height: 180px;
+  overflow-y: auto;
+}
+.archived-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: var(--text3);
+  border-bottom: 1px solid var(--bg2);
+}
+.archived-item:last-child { border-bottom: none; }
+.archived-id   { font-weight: 600; color: var(--text2); min-width: 48px; }
+.archived-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.archived-time { font-size: 10px; color: var(--text3); white-space: nowrap; }
+
+/* Unit list */
+#unit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.unit-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.unit-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+}
+
+.unit-item.status-activo::before { background: var(--green); }
+.unit-item.status-libre::before { background: var(--amber); }
+.unit-item.status-fuera_servicio::before { background: var(--red); }
+.unit-item.status-sos::before { background: var(--red); animation: sos-stripe 0.5s ease-in-out infinite; }
+@keyframes sos-stripe { 50% { opacity: 0; } }
+
+.unit-item:hover {
+  border-color: var(--border-hi);
+  background: var(--bg3);
+}
+
+.unit-id {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text0);
+  min-width: 38px;
+}
+
+.unit-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.unit-name {
+  font-size: 12px;
+  color: var(--text1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unit-time {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--text2);
+  margin-top: 1px;
+}
+
+.unit-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-activo .unit-status-dot { background: var(--green); box-shadow: var(--glow-green); }
+.status-libre .unit-status-dot { background: var(--amber); }
+.status-fuera_servicio .unit-status-dot { background: var(--red); }
+.status-sos .unit-status-dot { background: var(--red); animation: sos-pulse 0.5s ease-in-out infinite; box-shadow: var(--glow-red); }
+
+/* Unit card — row 2: meta info */
+.unit-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.unit-tag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+.unit-tag.speed {
+  background: rgba(79,142,247,0.12);
+  color: var(--accent);
+  font-family: var(--font);
+}
+.unit-tag.speed.fast { background: rgba(245,158,11,0.15); color: var(--amber); }
+.unit-tag.geocerca {
+  background: rgba(45,212,160,0.1);
+  color: var(--green);
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Unit quick actions */
+.unit-actions {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.unit-item:hover .unit-actions { opacity: 1; }
+
+.unit-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text2);
+  font-size: 11px;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.unit-btn:hover { background: var(--bg4); color: var(--text0); border-color: var(--border-hi); }
+
+/* Search input */
+#unit-search-wrap {
+  padding: 0 16px 10px;
+  position: relative;
+}
+#unit-search {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 10px 7px 30px;
+  color: var(--text0);
+  font-size: 12px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+#unit-search:focus { border-color: var(--accent); }
+#unit-search::placeholder { color: var(--text2); }
+#unit-search-icon {
+  position: absolute;
+  left: 26px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text2);
+  pointer-events: none;
+  font-size: 12px;
+}
+
+/* Filter tab badges */
+.filter-tab .tab-n {
+  display: inline-block;
+  background: var(--bg3);
+  border-radius: 3px;
+  padding: 0 4px;
+  font-size: 9px;
+  margin-left: 3px;
+  color: var(--text2);
+  font-weight: 600;
+  vertical-align: middle;
+}
+.filter-tab.active .tab-n { background: var(--bg4); color: var(--text1); }
+
+/* ═══════════════════════════════════════════
+   MAP
+═══════════════════════════════════════════ */
+#map-container {
+  position: relative;
+  background: var(--bg0);
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Google Maps dark theme overrides */
+.gm-style .gm-style-iw-c {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border-hi) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 0 !important;
+  max-width: 260px !important;
+}
+.gm-style .gm-style-iw-d { overflow: hidden !important; }
+.gm-style .gm-style-iw-tc::after { background: var(--bg2) !important; }
+.gm-style .gm-style-iw-chr { display: none !important; }
+.gm-style-cc { display: none !important; }
+.gm-control-active { background: var(--bg2) !important; }
+.gmnoprint a, .gmnoprint span { display: none !important; }
+.gm-style .gmnoprint div { background: var(--bg2) !important; border-color: var(--border) !important; }
+/* Hide Google Maps copyright / attribution clutter */
+a[href^="https://maps.google.com/maps"] { display: none !important; }
+
+/* Custom markers */
+.unit-marker-wrap {
+  position: relative;
+}
+
+.unit-marker {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2.5px solid var(--bg1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 700;
+  color: white;
+  background: var(--bg3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.unit-marker:hover { transform: scale(1.15); }
+.unit-marker.active  { background: #1a6b4a; border-color: var(--green); }
+.unit-marker.libre   { background: #7a4e10; border-color: var(--amber); }
+.unit-marker.fuera_servicio { background: #6b1a2a; border-color: var(--red); }
+.unit-marker.sos {
+  background: #8b0000;
+  border-color: var(--red);
+  animation: marker-sos 0.6s ease-in-out infinite;
+}
+@keyframes marker-sos {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(240,64,96,0.6); }
+  50% { box-shadow: 0 0 0 12px rgba(240,64,96,0); }
+}
+
+.base-marker {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font);
+  box-shadow: var(--glow-blue), 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* ═══════════════════════════════════════════
+   NUEVO SERVICIO MODAL
+═══════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.hidden { display: none; }
+.modal-dialog {
+  background: var(--bg1);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 14px;
+}
+.modal-header button {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.modal-header button:hover { color: var(--text0); background: var(--bg3); }
+.modal-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+}
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text0);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  transition: border-color var(--transition);
+  outline: none;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: var(--border-hi); }
+.form-group select option { background: var(--bg2); }
+.form-group textarea { resize: vertical; min-height: 64px; }
+/* Places autocomplete dropdown */
+.pac-container {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border-hi) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--font-ui) !important;
+}
+.pac-item { color: var(--text1) !important; border-color: var(--border) !important; padding: 6px 12px !important; }
+.pac-item:hover, .pac-item-selected { background: var(--bg3) !important; }
+.pac-item-query { color: var(--text0) !important; }
+.pac-matched { color: var(--accent) !important; }
+.pac-icon { filter: invert(1) opacity(0.4); }
+.btn-cancel {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text1);
+  padding: 9px 20px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn-cancel:hover { border-color: var(--border-hi); color: var(--text0); }
+.btn-submit {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  padding: 9px 24px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.btn-submit:hover { background: #6fa3f9; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.popup-inner {
+  padding: 14px 16px;
+  min-width: 200px;
+}
+.popup-id {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.popup-name { font-size: 12px; color: var(--text1); margin-bottom: 8px; }
+.popup-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 3px;
+}
+.popup-row span:last-child { color: var(--text1); font-family: var(--font); }
+
+.popup-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text0);
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition);
+}
+.popup-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Map overlays */
+#map-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text0);
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.map-btn:hover { border-color: var(--border-hi); background: var(--bg3); }
+.map-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.1); }
+
+/* Speed indicator bottom-left */
+#map-legend {
+  position: absolute;
+  bottom: 24px;
+  left: 12px;
+  z-index: 800;
+  display: flex;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(10,12,16,0.8);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════
+   RIGHT PANEL — BASES & CHAT
+═══════════════════════════════════════════ */
+#right-panel {
+  background: var(--bg1);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Tabs */
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 12px;
+  padding: 13px 8px;
+  cursor: pointer;
+  transition: all var(--transition);
+  border-bottom: 2px solid transparent;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.panel-tab:hover { color: var(--text1); }
+.panel-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: rgba(79,142,247,0.05);
+}
+
+.panel-tab .tab-badge {
+  background: var(--red);
+  color: white;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  margin-left: 4px;
+  display: none;
+}
+.panel-tab .tab-badge.visible { display: inline; }
+
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  gap: 8px;
+  flex-direction: column;
+}
+.tab-content.active { display: flex; }
+
+.tab-content::-webkit-scrollbar { width: 4px; }
+.tab-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Geocerca cards */
+.geocerca-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.geocerca-card:hover {
+  border-color: var(--border-hi);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.geocerca-card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 40px; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--bg3));
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.geocerca-card:hover::after { opacity: 1; }
+
+.geocerca-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.geocerca-id {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(79,142,247,0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.geocerca-count {
+  font-family: var(--font);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text0);
+  line-height: 1;
+}
+
+.geocerca-name {
+  font-size: 12px;
+  color: var(--text1);
+  margin-bottom: 4px;
+}
+
+.geocerca-units {
+  font-size: 11px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Radio / Chat */
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#chat-tab.active {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding-bottom: 10px;
+}
+
+#chat-messages::-webkit-scrollbar { width: 3px; }
+#chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-msg-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-sender {
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.chat-sender.is-base { color: var(--purple); }
+
+.chat-time {
+  font-size: 10px;
+  color: var(--text2);
+  font-family: var(--font);
+}
+
+.chat-text {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 0 var(--radius) var(--radius) var(--radius);
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--text1);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.chat-msg.is-base .chat-text {
+  background: rgba(79,142,247,0.08);
+  border-color: rgba(79,142,247,0.2);
+  border-radius: var(--radius) var(--radius) var(--radius) 0;
+  color: var(--text0);
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-shrink: 0;
+}
+
+.chat-input-row input {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  color: var(--text0);
+  font-size: 12px;
+  outline: none;
+  transition: border-color var(--transition);
+  font-family: var(--font-ui);
+}
+.chat-input-row input:focus { border-color: var(--accent); }
+.chat-input-row input::placeholder { color: var(--text2); }
+
+.chat-send-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+  font-weight: 600;
+}
+.chat-send-btn:hover { opacity: 0.85; }
+
+/* Alerts tab */
+#alerts-tab.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.alert-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.alert-item.sos { border-left-color: var(--red); animation: alert-pulse 2s ease-in-out infinite; }
+.alert-item.info { border-left-color: var(--accent); }
+.alert-item.warning { border-left-color: var(--amber); }
+
+@keyframes alert-pulse {
+  0%, 100% { background: var(--bg2); }
+  50% { background: rgba(240,64,96,0.05); }
+}
+
+.alert-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text0);
+  margin-bottom: 3px;
+}
+.alert-desc { font-size: 11px; color: var(--text2); }
+.alert-time { font-size: 10px; color: var(--text2); margin-top: 4px; font-family: var(--font); }
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  font-size: 12px;
+  gap: 8px;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.empty-state svg { width: 32px; height: 32px; opacity: 0.4; }
+
+/* ═══════════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════════ */
+#notifications {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.notif {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text0);
+  box-shadow: var(--shadow-lg);
+  animation: notif-in 0.3s ease;
+  pointer-events: all;
+  max-width: 280px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-left: 3px solid var(--accent);
+}
+.notif.error { border-left-color: var(--red); }
+.notif.success { border-left-color: var(--green); }
+.notif.warning { border-left-color: var(--amber); }
+
+@keyframes notif-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes notif-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════
+   LOADING
+═══════════════════════════════════════════ */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: var(--bg0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#loader.hidden { display: none; }
+
+.loader-ring {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loader-text {
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+}
+
+/* ═══════════════════════════════════════════
+   MISCELLANEOUS
+═══════════════════════════════════════════ */
+.btn-sm {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text1);
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-sm:hover { border-color: var(--border-hi); color: var(--text0); }
+.btn-sm.danger:hover { border-color: var(--red); color: var(--red); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  gap: 4px;
+}
+.badge.green { background: rgba(45,212,160,0.15); color: var(--green); }
+.badge.amber { background: rgba(245,158,11,0.15); color: var(--amber); }
+.badge.red { background: rgba(240,64,96,0.15); color: var(--red); }
+.badge.blue { background: rgba(79,142,247,0.15); color: var(--accent); }
+
+/* Tooltip */
+[data-tip] {
+  position: relative;
+  cursor: pointer;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg3);
+  color: var(--text0);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 9999;
+}
+[data-tip]:hover::after { opacity: 1; }
+
+/* Unit list scroll area */
+#unit-list-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+#unit-list-wrap::-webkit-scrollbar { width: 4px; }
+#unit-list-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- MODAL NUEVO SERVICIO -->
+<div id="modal-nuevo-servicio" class="modal-overlay hidden">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <span>+ Nuevo Servicio Manual</span>
+      <button onclick="cerrarNuevoServicio()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Cliente</label>
+        <input id="ns-cliente" type="text" placeholder="Nombre del pasajero" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input id="ns-telefono" type="tel" placeholder="(Sin clave de país)">
+      </div>
+      <div class="form-group">
+        <label>Origen (punto de recogida)</label>
+        <input id="ns-origen" type="text" placeholder="Busca la dirección o escribe la referencia…" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Destino *</label>
+        <input id="ns-destino" type="text" placeholder="¿A dónde va el pasajero?" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Asignar a unidad (opcional)</label>
+        <select id="ns-unidad">
+          <option value="">— Cualquier unidad disponible —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notas para el conductor</label>
+        <textarea id="ns-notas" placeholder="Señas de la casa, referencias, equipaje, etc."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarNuevoServicio()">Cancelar</button>
+      <button class="btn-submit" id="ns-submit-btn" onclick="submitNuevoServicio()">Despachar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">INICIANDO SISTEMA...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAkACQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD7KrM1PXtF0wuL7VLWB0UsyNIC4AGSdo56c9K0XUOhU9CMGvOvHbaL4E0Cz/svT4Vvry5SzjuXVZJVyCWcs/UhQevGT+Bmc4U4uU9iJz5IuT2R1Wm+L/DGovss9cspGyBtMm089ODjrW4CCMg5B714d4G18Q69YaT4l1Oz19tQuvLhb7OGSIsu5drMAQwPYZ4IJwevsmj6ZZ6XA8NiGSB33hC24LwBgZ5xwOO3alCtTqX5HsVf3mr3t/w/UvUUUVYwrzL4uadqWoWE0WlySC/tLoXaxqiu89uyBXCK2dxBXOMH7vvXptZlza3st4kxh06QRsfKZ0beoI9fWuXF0XWhyp2Lg0nqeA/DzStRl8ax6lC8tjodteSX9/5seEZztKqrt/EXU/KO3XGOfoXRRINLgMoKuy7yp6jcScfhmqktnfSkLNb6bKgbeocO2GHQ8+9aVt5/lD7T5Xmd/Lzj9azwuGnSk3J3/r+vxLq1FNEtFFFdxiFFFFABRRRQAUUUUAf/2Q==" alt="Sitios Hidalgo A.C." style="width:64px;height:64px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 8px rgba(245,158,11,0.5));display:block;margin:0 auto 16px;">
+    <h1>SHidalgo Kué'in</h1>
+    <p>Sitios Hidalgo A.C. — Base Central v4.0</p>
+    <div class="field">
+      <label>Alias de operador</label>
+      <input type="text" id="login-alias" placeholder="base / despachador / admin" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••">
+    </div>
+    <button class="btn-login" id="login-btn" onclick="doLogin()">ENTRAR AL SISTEMA</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- SOS BANNER -->
+<div id="sos-banner" onclick="focusSOS()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+  </svg>
+  <span id="sos-text">⚡ ALERTA SOS ACTIVA</span>
+  <span style="margin-left:auto;font-size:12px;opacity:0.8">Haz clic para ver</span>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="logo">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAkACQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD7KrM1PXtF0wuL7VLWB0UsyNIC4AGSdo56c9K0XUOhU9CMGvOvHbaL4E0Cz/svT4Vvry5SzjuXVZJVyCWcs/UhQevGT+Bmc4U4uU9iJz5IuT2R1Wm+L/DGovss9cspGyBtMm089ODjrW4CCMg5B714d4G18Q69YaT4l1Oz19tQuvLhb7OGSIsu5drMAQwPYZ4IJwevsmj6ZZ6XA8NiGSB33hC24LwBgZ5xwOO3alCtTqX5HsVf3mr3t/w/UvUUUVYwrzL4uadqWoWE0WlySC/tLoXaxqiu89uyBXCK2dxBXOMH7vvXptZlza3st4kxh06QRsfKZ0beoI9fWuXF0XWhyp2Lg0nqeA/DzStRl8ax6lC8tjodteSX9/5seEZztKqrt/EXU/KO3XGOfoXRRINLgMoKuy7yp6jcScfhmqktnfSkLNb6bKgbeocO2GHQ8+9aVt5/lD7T5Xmd/Lzj9azwuGnSk3J3/r+vxLq1FNEtFFFdxiFFFFABRRRQAUUUUAf/2Q==" alt="SHA" style="width:32px;height:32px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 4px rgba(245,158,11,0.4));">
+      SHidalgo Kué'in
+      <span class="logo-badge">BASE</span>
+    </div>
+    <div class="divider"></div>
+    <div id="firebase-status">
+      <div class="dot"></div>
+      <span class="label">Conectando...</span>
+    </div>
+    <div class="divider"></div>
+    <span id="operator-label" style="font-size:12px;color:var(--text2)">—</span>
+    <div class="spacer"></div>
+    <button class="btn-sm" style="background:var(--accent);color:white;border-color:var(--accent)" onclick="abrirNuevoServicio()" data-tip="Crear servicio manual">+ Nuevo Servicio</button>
+    <button class="btn-sm" onclick="centerMap()" data-tip="Centrar mapa en Nochixtlán">⊕ Centro</button>
+    <button class="btn-sm danger" onclick="doLogout()">Salir</button>
+    <div id="clock">—</div>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+    <!-- Stats -->
+    <div class="panel-section">
+      <div class="section-title">
+        <span>Estado del sistema</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card active">
+          <div class="stat-value" id="stat-active">0</div>
+          <div class="stat-label">Con servicio</div>
+        </div>
+        <div class="stat-card idle">
+          <div class="stat-value" id="stat-idle">0</div>
+          <div class="stat-label">Disponibles</div>
+        </div>
+        <div class="stat-card offline">
+          <div class="stat-value" id="stat-offline">0</div>
+          <div class="stat-label">Fuera servicio</div>
+        </div>
+        <div class="stat-card sos">
+          <div class="stat-value" id="stat-sos">0</div>
+          <div class="stat-label">Alertas SOS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search + Filter -->
+    <div class="panel-section">
+      <div id="unit-search-wrap">
+        <span id="unit-search-icon">⌕</span>
+        <input id="unit-search" type="search" placeholder="Buscar unidad o conductor…" oninput="onSearchInput(this.value)" autocomplete="off">
+      </div>
+      <div class="filter-tabs" id="filter-tabs">
+        <button class="filter-tab active" data-filter="all"            onclick="setFilter('all',this)">Todas<span class="tab-n" id="tn-all">0</span></button>
+        <button class="filter-tab"        data-filter="activo"         onclick="setFilter('activo',this)">Activo<span class="tab-n" id="tn-activo">0</span></button>
+        <button class="filter-tab"        data-filter="libre"          onclick="setFilter('libre',this)">Libre<span class="tab-n" id="tn-libre">0</span></button>
+        <button class="filter-tab"        data-filter="fuera_servicio" onclick="setFilter('fuera_servicio',this)">Fuera<span class="tab-n" id="tn-fuera">0</span></button>
+      </div>
+    </div>
+
+    <!-- Unidades archivadas (sin señal desde ayer o antes) -->
+    <div id="archived-banner">
+      <button id="archived-toggle" onclick="toggleArchivedUnits()">
+        <span class="arc-icon">⊘</span>
+        <span>Sin señal hoy</span>
+        <span style="flex:1"></span>
+        <span class="arc-count" id="archived-count">0</span>
+        <span id="archived-chevron">▸</span>
+      </button>
+      <div id="archived-list"></div>
+    </div>
+
+    <!-- Unit list -->
+    <div id="unit-list-wrap">
+      <div id="unit-list">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+          </svg>
+          Esperando unidades...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div id="map-container">
+    <div id="map"></div>
+
+    <div id="map-controls">
+      <button class="map-btn active" id="btn-bases" onclick="toggleLayer('bases',this)" data-tip="Mostrar/ocultar geocercas">
+        ◎ Bases
+      </button>
+      <button class="map-btn active" id="btn-circles" onclick="toggleLayer('circles',this)" data-tip="Mostrar/ocultar áreas">
+        ○ Áreas
+      </button>
+      <button class="map-btn" id="btn-heatmap" onclick="toggleLayer('heatmap',this)" data-tip="Densidad de unidades">
+        ≋ Densidad
+      </button>
+    </div>
+
+    <div id="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Con servicio</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Libre</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Fuera/SOS</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right-panel">
+    <div class="panel-tabs">
+      <button class="panel-tab active" onclick="switchTab('bases')">Bases <span class="tab-badge" id="badge-bases"></span></button>
+      <button class="panel-tab" onclick="switchTab('chat')">Radio <span class="tab-badge" id="badge-chat"></span></button>
+      <button class="panel-tab" onclick="switchTab('alerts')">Alertas <span class="tab-badge" id="badge-alerts"></span></button>
+      <button class="panel-tab" onclick="switchTab('passwords')">Contraseñas</button>
+    </div>
+
+    <!-- Bases tab -->
+    <div class="tab-content active" id="bases-tab">
+      <!-- Geocerca cards injected here -->
+    </div>
+
+    <!-- Chat tab -->
+    <div class="tab-content" id="chat-tab">
+      <div class="chat-header">
+        <span style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.08em">Canal Radio</span>
+        <button class="btn-sm" onclick="clearChatMessages()">Limpiar</button>
+      </div>
+      <div id="chat-messages">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+          Sin mensajes de radio
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Mensaje a todas las unidades..." maxlength="200"
+               onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send-btn" onclick="sendChat()">↑</button>
+      </div>
+    </div>
+
+    <!-- Alerts tab -->
+    <div class="tab-content" id="alerts-tab">
+      <div id="alerts-list">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>
+          </svg>
+          Sin alertas activas
+        </div>
+      </div>
+    </div>
+
+    <!-- Passwords tab -->
+    <div class="tab-content" id="passwords-tab">
+      <div style="padding:12px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.08em">
+          Gestionar contraseñas de conductores
+        </div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5;">
+          Asigna o resetea la contraseña de cualquier unidad. La nueva contraseña
+          reemplaza la anterior de forma inmediata.
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em">Unidad</label>
+          <input id="pw-unit" type="text" placeholder="Ej: TX01 o SH001"
+            style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);
+                   padding:8px 10px;border-radius:6px;font-size:13px;outline:none;"
+            maxlength="20" autocomplete="off">
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em">Nueva contraseña</label>
+          <input id="pw-new" type="password" placeholder="Mínimo 6 caracteres"
+            style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);
+                   padding:8px 10px;border-radius:6px;font-size:13px;outline:none;"
+            minlength="6" maxlength="64" autocomplete="new-password">
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em">Confirmar contraseña</label>
+          <input id="pw-confirm" type="password" placeholder="Repite la contraseña"
+            style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);
+                   padding:8px 10px;border-radius:6px;font-size:13px;outline:none;"
+            minlength="6" maxlength="64" autocomplete="new-password">
+        </div>
+
+        <button id="pw-btn" onclick="resetConductorPassword()"
+          style="background:var(--gold);color:#000;font-weight:700;font-size:12px;
+                 text-transform:uppercase;letter-spacing:0.08em;padding:10px;
+                 border:none;border-radius:6px;cursor:pointer;">
+          ESTABLECER CONTRASEÑA
+        </button>
+
+        <div id="pw-status" style="font-size:12px;min-height:20px;text-align:center;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notifications"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   FIREBASE CONFIGURATION
+═══════════════════════════════════════════════════════ */
+const FB_CONFIG = {
+  apiKey: "AIzaSyDEu6dOk9mUqXp52lyY6vBEm4GAsgU0ESU",
+  authDomain: "sitios-hidalgo-gps.firebaseapp.com",
+  databaseURL: "https://sitios-hidalgo-gps-default-rtdb.firebaseio.com",
+  projectId: "sitios-hidalgo-gps",
+  storageBucket: "sitios-hidalgo-gps.appspot.com",
+  messagingSenderId: "140903781731",
+  appId: "1:140903781731:web:2178219a57a3244db42f56"
+};
+
+// Solo alias → email y nombre visible. Sin contraseñas en el cliente.
+// La autenticación real la valida Firebase Auth en el servidor.
+const OPERATOR_ALIASES = {
+  base:        { email: 'base@sitios-hidalgo.com',        alias: 'BASE CENTRAL'  },
+  despachador: { email: 'despachador@sitios-hidalgo.com', alias: 'DESPACHADOR'   },
+  admin:       { email: 'admin@sitios-hidalgo.com',       alias: 'ADMINISTRADOR' }
+};
+
+/* ═══════════════════════════════════════════════════════
+   GEOCERCAS — Coordenadas campo verificadas SW Maps 1.4-3m
+═══════════════════════════════════════════════════════ */
+const GEOCERCAS = [
+  { id:'B1', name:'Centro',                 lat:17.459468, lng:-97.225268, radius:80  },
+  { id:'B2', name:'Turístico',              lat:17.460197, lng:-97.229843, radius:80  },
+  { id:'B3', name:'Terminal Sur',           lat:17.460377, lng:-97.231048, radius:100 },
+  { id:'B4', name:'Porfirio Díaz/Alcalá',  lat:17.458817, lng:-97.222210, radius:80  },
+  { id:'B5', name:'Porfirio Díaz/5 de Feb',lat:17.459680, lng:-97.227145, radius:80  },
+  { id:'B6', name:'Hospital',              lat:17.450427, lng:-97.225592, radius:100 },
+  { id:'B7', name:'Fresno',                lat:17.453626, lng:-97.230098, radius:80  },
+];
+
+const MAP_CENTER = [17.4575, -97.2273];
+const MAP_ZOOM   = 15;
+
+/* ═══════════════════════════════════════════════════════
+   CENTRALIZED STATE — Single source of truth
+═══════════════════════════════════════════════════════ */
+const STATE = {
+  units:        {},      // uid → unit data
+  unitMarkers:  {},      // uid → google.maps.Marker
+  geocercaCounts: {},    // geocercaId → Set of uids
+  geocercaCircles:[],    // google.maps.Circle layers
+  geocercaMarkers:[],    // google.maps.Marker for bases
+  activeFilter:  'all',
+  showBases:    true,
+  showCircles:  true,
+  listeners:    [],      // Firebase off() refs for cleanup
+  sosActive:    {},      // uid → true if SOS
+  alerts:       [],      // alert objects
+  chatBadge:    0,
+  alertBadge:   0,
+  db:           null,
+  auth:         null,
+  operator:     null,
+  audioCtx:     null,
+  archivedUnits: {},   // uid → resumen de unidades sin señal hoy
+  searchQuery:   '',   // filtro de búsqueda del operador
+};
+
+/* ═══════════════════════════════════════════════════════
+   INIT — Firebase
+═══════════════════════════════════════════════════════ */
+let firebaseApp;
+try {
+  firebaseApp = firebase.initializeApp(FB_CONFIG);
+} catch(e) {
+  firebaseApp = firebase.app();
+}
+
+STATE.auth      = firebase.auth();
+STATE.db        = firebase.database();
+STATE.functions = firebase.functions();
+
+/* ═══════════════════════════════════════════════════════
+   MAP INIT — Google Maps SDK
+═══════════════════════════════════════════════════════ */
+let map;
+let gInfoWindow; // shared InfoWindow instance
+
+const DARK_MAP_STYLE = [
+  { elementType: 'geometry', stylers: [{ color: '#141720' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#9ba0bc' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#0f1117' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#1c2030' }] },
+  { featureType: 'administrative.land_parcel', stylers: [{ visibility: 'off' }] },
+  { featureType: 'administrative.neighborhood', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#242840' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#1c2030' }] },
+  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#5a6080' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#323660' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#9ba0bc' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0a0c10' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#3d5a6e' }] },
+];
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: MAP_CENTER[0], lng: MAP_CENTER[1] },
+    zoom: MAP_ZOOM,
+    styles: DARK_MAP_STYLE,
+    disableDefaultUI: false,
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    gestureHandling: 'greedy',
+  });
+
+  gInfoWindow = new google.maps.InfoWindow({ disableAutoPan: false });
+
+  // Clic en área vacía del mapa → cerrar cualquier popup abierto
+  map.addListener('click', () => gInfoWindow.close());
+
+  initGeocercas();
+}
+
+/* ═══════════════════════════════════════════════════════
+   GEOCERCAS — init circles & markers (Google Maps)
+═══════════════════════════════════════════════════════ */
+function createBaseIcon(id) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38">
+    <defs><linearGradient id="bg${id}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f8ef7"/><stop offset="100%" stop-color="#7c5af7"/>
+    </linearGradient></defs>
+    <circle cx="19" cy="19" r="17" fill="url(#bg${id})" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <text x="19" y="23" text-anchor="middle" fill="white" font-family="monospace" font-size="8" font-weight="700">${id}</text>
+  </svg>`;
+  return {
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+    scaledSize: new google.maps.Size(38, 38),
+    anchor: new google.maps.Point(19, 19),
+  };
+}
+
+function initGeocercas() {
+  // Reset geocerca counts
+  GEOCERCAS.forEach(g => { STATE.geocercaCounts[g.id] = new Set(); });
+
+  // Clear old layers
+  STATE.geocercaCircles.forEach(c => c.setMap(null));
+  STATE.geocercaMarkers.forEach(m => m.setMap(null));
+  STATE.geocercaCircles = [];
+  STATE.geocercaMarkers = [];
+
+  GEOCERCAS.forEach(g => {
+    // Geofence circle
+    const circle = new google.maps.Circle({
+      center: { lat: g.lat, lng: g.lng },
+      radius: g.radius,
+      map,
+      strokeColor: 'rgba(79,142,247,0.6)',
+      strokeOpacity: 1,
+      strokeWeight: 1.5,
+      fillColor: 'rgba(79,142,247,0.06)',
+      fillOpacity: 1,
+    });
+    STATE.geocercaCircles.push(circle);
+
+    // Base marker
+    const marker = new google.maps.Marker({
+      position: { lat: g.lat, lng: g.lng },
+      map,
+      icon: createBaseIcon(g.id),
+      title: g.name,
+      zIndex: 10,
+    });
+
+    marker.addListener('click', () => {
+      gInfoWindow.setContent(createBasePopup(g));
+      gInfoWindow.open({ anchor: marker, map });
+    });
+
+    STATE.geocercaMarkers.push(marker);
+  });
+
+  renderGeocercaPanel();
+}
+
+function createBasePopup(g) {
+  return `<div class="popup-inner" style="position:relative">
+    <button onclick="gInfoWindow.close()" style="position:absolute;top:2px;right:2px;background:none;border:none;font-size:16px;font-weight:bold;cursor:pointer;color:#666;line-height:1;padding:2px 5px;" title="Cerrar">✕</button>
+    <div class="popup-id">${g.id}</div>
+    <div class="popup-name">${g.name}</div>
+    <div class="popup-row"><span>Radio</span><span>${g.radius}m</span></div>
+    <div class="popup-row"><span>Coords</span><span>${g.lat.toFixed(5)}, ${g.lng.toFixed(5)}</span></div>
+    <div class="popup-row" id="popup-count-${g.id}"><span>Unidades</span><span>0</span></div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   GEOCERCA COUNT CALC — vectorized, efficient
+═══════════════════════════════════════════════════════ */
+function haversineM(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function calcNearestBase(lat, lng) {
+  let nearest = null, minDist = Infinity;
+  GEOCERCAS.forEach(g => {
+    const d = haversineM(lat, lng, g.lat, g.lng);
+    if (d < minDist) { minDist = d; nearest = g.id; }
+  });
+  return { nearest, dist: minDist };
+}
+
+function recalcGeocercas() {
+  // Reset all counts
+  GEOCERCAS.forEach(g => { STATE.geocercaCounts[g.id] = new Set(); });
+
+  // Count units in each geocerca (only active/libre)
+  Object.entries(STATE.units).forEach(([uid, unit]) => {
+    if (!unit.lat || !unit.lng) return;
+    if (unit.estado === 'fuera_servicio') return;
+    GEOCERCAS.forEach(g => {
+      const d = haversineM(unit.lat, unit.lng, g.lat, g.lng);
+      if (d <= g.radius) {
+        STATE.geocercaCounts[g.id].add(uid);
+      }
+    });
+  });
+
+  renderGeocercaPanel();
+  updateBasePopups();
+}
+
+function updateBasePopups() {
+  GEOCERCAS.forEach((g, i) => {
+    const count = STATE.geocercaCounts[g.id].size;
+    const el = document.getElementById(`popup-count-${g.id}`);
+    if (el) {
+      const span = el.querySelector('span:last-child');
+      if (span) span.textContent = count;
+    }
+    // Update circle fill intensity based on count
+    if (STATE.geocercaCircles[i]) {
+      const alpha = Math.min(0.05 + count * 0.04, 0.25);
+      STATE.geocercaCircles[i].setOptions({
+        fillOpacity: alpha,
+        strokeColor: count > 0 ? 'rgba(79,142,247,0.7)' : 'rgba(79,142,247,0.4)',
+      });
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   GEOCERCA PANEL RENDER
+═══════════════════════════════════════════════════════ */
+function renderGeocercaPanel() {
+  const container = document.getElementById('bases-tab');
+  container.innerHTML = '';
+
+  GEOCERCAS.forEach(g => {
+    const count = STATE.geocercaCounts[g.id] ? STATE.geocercaCounts[g.id].size : 0;
+    const unitIds = STATE.geocercaCounts[g.id]
+      ? [...STATE.geocercaCounts[g.id]].map(uid => escapeHtml(STATE.units[uid]?.unidadId || uid)).join(', ')
+      : '';
+
+    const card = document.createElement('div');
+    card.className = 'geocerca-card';
+    card.innerHTML = `
+      <div class="geocerca-header">
+        <span class="geocerca-id">${g.id}</span>
+        <span class="geocerca-count">${count}</span>
+      </div>
+      <div class="geocerca-name">${g.name}</div>
+      <div class="geocerca-units">${unitIds || '— sin unidades —'}</div>
+    `;
+    card.onclick = () => {
+      map.panTo({ lat: g.lat, lng: g.lng });
+      map.setZoom(17);
+      const gm = STATE.geocercaMarkers[GEOCERCAS.indexOf(g)];
+      if (gm) { gInfoWindow.setContent(createBasePopup(g)); gInfoWindow.open({ anchor: gm, map }); }
+    };
+    container.appendChild(card);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   UNIT MARKERS — diff-based update, no flicker (Google Maps)
+═══════════════════════════════════════════════════════ */
+function createUnitIcon(unit) {
+  const id = String(unit.unidadId || '?').substring(0, 4);
+  const status = normalizeStatus(unit.estado);
+  const C = {
+    libre:          { bg: '#006633', border: '#00ff88' },  // verde  = disponible/libre
+    activo:         { bg: '#994400', border: '#ffaa00' },  // naranja = ocupado/en viaje
+    fuera_servicio: { bg: '#444444', border: '#888888' },  // gris   = descanso/offline
+    sos:            { bg: '#8b0000', border: '#ff3355' },  // rojo   = SOS
+  }[status] || { bg: '#444444', border: '#888888' };
+  const fs = id.length > 3 ? 4 : id.length > 2 ? 5 : 6;
+  const glow = status === 'sos' ? `<circle cx="11" cy="11" r="10" fill="none" stroke="${C.border}" stroke-width="1" opacity="0.4"/>` : '';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+    ${glow}
+    <circle cx="11" cy="11" r="9" fill="${C.bg}" stroke="${C.border}" stroke-width="1.5"/>
+    <text x="11" y="14" text-anchor="middle" fill="white" font-family="monospace" font-size="${fs}" font-weight="700">${id}</text>
+  </svg>`;
+  return {
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+    scaledSize: new google.maps.Size(22, 22),
+    anchor: new google.maps.Point(11, 11),
+  };
+}
+
+function normalizeStatus(estado) {
+  const s = (estado || '').toLowerCase().replace(/\s+/g, '_');
+  if (s === 'activo'  || s === 'en_servicio')           return 'activo';
+  if (s === 'ocupado' || s === 'en_viaje')              return 'activo'; // conductor con pasajero
+  if (s === 'libre'   || s === 'disponible')            return 'libre';
+  if (s === 'fuera_servicio' || s === 'fuera de servicio') return 'fuera_servicio';
+  if (s === 'offline' || s === 'descanso')              return 'fuera_servicio'; // CF y onDisconnect
+  if (s === 'sos')                                      return 'sos';
+  return 'libre';
+}
+
+/**
+ * Animación suave del marcador de un taxi de posición A → B.
+ * Usa requestAnimationFrame con easing cuadrático para una transición fluida.
+ * @param {google.maps.Marker} marker
+ * @param {google.maps.LatLng} from  — posición actual del marcador
+ * @param {{lat:number,lng:number}} to — destino
+ * @param {number} ms — duración en milisegundos
+ */
+function animateMarker(marker, from, to, ms) {
+  const startLat = from.lat(), startLng = from.lng();
+  const dLat = to.lat - startLat, dLng = to.lng - startLng;
+  const t0 = performance.now();
+  function step(t) {
+    const p = Math.min((t - t0) / ms, 1);
+    // ease-in-out cuadrático
+    const e = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
+    marker.setPosition({ lat: startLat + dLat * e, lng: startLng + dLng * e });
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function upsertUnit(uid, data) {
+  const prev = STATE.units[uid];
+  STATE.units[uid] = data;
+
+  if (!map || !data.lat || !data.lng) return;
+
+  if (!STATE.unitMarkers[uid]) {
+    // Create new Google Maps marker
+    const marker = new google.maps.Marker({
+      position: { lat: data.lat, lng: data.lng },
+      map,
+      icon: createUnitIcon(data),
+      title: String(data.unidadId || uid),
+      zIndex: 20,
+    });
+
+    marker.addListener('click', () => updatePopup(uid, marker));
+    STATE.unitMarkers[uid] = marker;
+  } else {
+    // Update existing — animación suave si se movió más de 0.5 m
+    const marker = STATE.unitMarkers[uid];
+    const prevPos = marker.getPosition();
+    const moved = haversineM(prevPos.lat(), prevPos.lng(), data.lat, data.lng) > 0.5;
+    if (moved) {
+      animateMarker(marker, prevPos, { lat: data.lat, lng: data.lng }, 600);
+    }
+    // Update icon only if status changed
+    if (!prev || prev.estado !== data.estado) {
+      marker.setIcon(createUnitIcon(data));
+    }
+  }
+}
+
+function updatePopup(uid, marker) {
+  const unit = STATE.units[uid];
+  if (!unit) return;
+  const { nearest, dist } = unit.lat ? calcNearestBase(unit.lat, unit.lng) : { nearest: '?', dist: 0 };
+  const distStr = dist < 1000 ? `${Math.round(dist)}m` : `${(dist/1000).toFixed(1)}km`;
+  const statusClass = normalizeStatus(unit.estado);
+  const statusLabel = { activo: 'Con servicio', libre: 'Disponible', fuera_servicio: 'Fuera de servicio', sos: '⚡ SOS' }[statusClass] || unit.estado;
+  const updated = unit.timestamp ? new Date(unit.timestamp).toLocaleTimeString('es-MX') : '—';
+
+  gInfoWindow.setContent(`<div class="popup-inner" style="position:relative">
+    <button onclick="gInfoWindow.close()" style="position:absolute;top:2px;right:2px;background:none;border:none;font-size:16px;font-weight:bold;cursor:pointer;color:#666;line-height:1;padding:2px 5px;" title="Cerrar">✕</button>
+    <div class="popup-id">${escapeHtml(String(unit.unidadId || uid))}</div>
+    <div class="popup-name">${escapeHtml(unit.conductor || 'Sin conductor')}</div>
+    <div class="popup-row"><span>Estado</span><span class="badge ${statusClass === 'activo' ? 'green' : statusClass === 'libre' ? 'amber' : 'red'}">${statusLabel}</span></div>
+    <div class="popup-row"><span>Base cercana</span><span>${nearest} (${distStr})</span></div>
+    <div class="popup-row"><span>Velocidad</span><span>${unit.speed ? unit.speed.toFixed(0)+' km/h' : '0 km/h'}</span></div>
+    <div class="popup-row"><span>Últ. señal</span><span>${updated}</span></div>
+    <button class="popup-btn" onclick="sendRadioTo('${escapeHtml(String(unit.unidadId || uid))}');gInfoWindow.close()">📻 Mensaje al conductor</button>
+  </div>`);
+  gInfoWindow.open({ anchor: marker, map });
+}
+
+function removeUnit(uid) {
+  if (STATE.unitMarkers[uid]) {
+    STATE.unitMarkers[uid].setMap(null);
+    delete STATE.unitMarkers[uid];
+  }
+  delete STATE.units[uid];
+}
+
+/* ═══════════════════════════════════════════════════════
+   FIREBASE LISTENERS — single attach, no duplicates
+═══════════════════════════════════════════════════════ */
+let listenersAttached = false;
+
+function attachListeners() {
+  if (listenersAttached) return;
+  listenersAttached = true;
+
+  const rtdb = STATE.db;
+
+  // UNITS listener — diff based
+  const unitsRef = rtdb.ref('/unidades');
+  const onUnits = unitsRef.on('value', snap => {
+    const data = snap.val() || {};
+    const incoming = new Set(Object.keys(data));
+    const existing = new Set(Object.keys(STATE.units));
+
+    // Remove units no longer present
+    existing.forEach(uid => {
+      if (!incoming.has(uid)) removeUnit(uid);
+    });
+
+    // Upsert — saltar unidades ya archivadas para evitar ciclo add/remove en cada snapshot
+    Object.entries(data).forEach(([uid, unit]) => {
+      if (!unit) return;
+      const normalized = {
+        // conductor escribe 'id' y 'name'; soportar ambas convenciones
+        unidadId:  unit.unidadId  || unit.id    || uid,
+        conductor: unit.conductor || unit.nombre || unit.name || '',
+        // conductor escribe 'status' (uppercase); base puede escribir 'estado'
+        estado:    unit.estado    || unit.status || 'libre',
+        lat:       parseFloat(unit.lat)       || parseFloat(unit.latitude)  || null,
+        lng:       parseFloat(unit.lng)       || parseFloat(unit.longitude) || null,
+        speed:     unit.speed     || unit.velocidad || 0,
+        timestamp: unit.timestamp || unit.lastUpdate || Date.now(),
+      };
+      // Si está archivada y sigue siendo stale, no la re-insertamos
+      if (STATE.archivedUnits[uid]) {
+        const isActive = ['activo','sos'].includes(normalizeStatus(normalized.estado));
+        const isToday  = normalized.timestamp >= getTodayStart();
+        if (!isActive && !isToday) return; // sigue siendo stale → ignorar
+        // Volvió a estar activa → sacarla del archivo y dejar que upsert continúe
+        delete STATE.archivedUnits[uid];
+      }
+      upsertUnit(uid, normalized);
+    });
+
+    cleanupStaleUnits();   // archivar unidades sin señal de días anteriores
+    updateStats();
+    updateUnitList();
+    recalcGeocercas();
+    checkSOS();
+  });
+
+  // SOS listener — escucha /alertas_sos (ruta real donde escriben conductores y Cloud Functions)
+  const sosRef = rtdb.ref('/alertas_sos');
+  sosRef.on('child_added', snap => {
+    const data = snap.val();
+    if (!data) return;
+    const uid = snap.key;
+    if (STATE.sosActive[uid]) return; // dedup
+    STATE.sosActive[uid] = true;
+    triggerSOS(uid, data);
+  });
+
+  sosRef.on('child_removed', snap => {
+    const uid = snap.key;
+    delete STATE.sosActive[uid];
+    checkSOS();
+  });
+
+  // CHAT listener
+  const chatRef = rtdb.ref('/radio').limitToLast(50);
+  chatRef.on('child_added', snap => {
+    const msg = snap.val();
+    if (msg) renderChatMessage(msg, snap.key);
+  });
+
+  // Firebase connection state
+  rtdb.ref('.info/connected').on('value', snap => {
+    const connected = snap.val();
+    const statusEl = document.getElementById('firebase-status');
+    const labelEl = statusEl.querySelector('.label');
+    statusEl.classList.toggle('online',  !!connected);
+    statusEl.classList.toggle('offline', !connected);
+    labelEl.textContent = connected ? 'Conectado' : 'Sin conexión';
+  });
+
+  // child_removed: reacción instantánea cuando un conductor termina turno
+  // o pierde señal (onDisconnect del conductor borra el nodo en RTDB).
+  unitsRef.on('child_removed', snap => {
+    removeUnit(snap.key);
+    updateStats();
+    updateUnitList();
+    recalcGeocercas();
+    checkSOS();
+  });
+
+  STATE.listeners.push({ ref: unitsRef, event: 'value', handler: onUnits });
+}
+
+function detachListeners() {
+  // Firebase compat: just turn off all refs we used
+  STATE.db.ref('/unidades').off();
+  STATE.db.ref('/sos').off();
+  STATE.db.ref('/radio').off();
+  STATE.db.ref('.info/connected').off();
+  STATE.listeners = [];
+  listenersAttached = false;
+}
+
+/* ═══════════════════════════════════════════════════════
+   UNIT CLEANUP — Filtrar por día actual / estado activo
+   Unidades sin señal de días anteriores se archivan en
+   localStorage y se ocultan del mapa y la lista.
+═══════════════════════════════════════════════════════ */
+const ARCHIVE_KEY = 'shk_archived_units';
+
+function getTodayStart() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function loadArchivedUnits() {
+  try {
+    const raw = localStorage.getItem(ARCHIVE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    // Descartar archivos de días anteriores — cada día se empieza limpio
+    if (saved.fecha !== new Date().toLocaleDateString('es-MX')) {
+      localStorage.removeItem(ARCHIVE_KEY);
+      return;
+    }
+    STATE.archivedUnits = saved.unidades || {};
+  } catch(_) {
+    STATE.archivedUnits = {};
+  }
+}
+
+function saveArchivedUnits() {
+  try {
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify({
+      fecha: new Date().toLocaleDateString('es-MX'),
+      unidades: STATE.archivedUnits,
+    }));
+  } catch(_) {}
+}
+
+function cleanupStaleUnits() {
+  const todayStart = getTodayStart();
+  let changed = false;
+
+  Object.entries(STATE.units).forEach(([uid, unit]) => {
+    const ts     = unit.timestamp || 0;
+    const status = normalizeStatus(unit.estado);
+    const isActive = status === 'activo' || status === 'sos';
+    const isToday  = ts >= todayStart;
+
+    if (!isActive && !isToday) {
+      // Archivar: guardar resumen mínimo, retirar del mapa y del estado
+      STATE.archivedUnits[uid] = {
+        unidadId:  unit.unidadId || uid,
+        conductor: unit.conductor || '',
+        lastSeen:  ts,
+        estado:    unit.estado,
+      };
+      if (STATE.unitMarkers[uid]) {
+        STATE.unitMarkers[uid].setMap(null);
+        delete STATE.unitMarkers[uid];
+      }
+      delete STATE.units[uid];
+      changed = true;
+    } else if (STATE.archivedUnits[uid]) {
+      // La unidad volvió a tener señal hoy — retirarla del archivo
+      delete STATE.archivedUnits[uid];
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    saveArchivedUnits();
+    renderArchivedBanner();
+  }
+}
+
+function renderArchivedBanner() {
+  const count   = Object.keys(STATE.archivedUnits).length;
+  const banner  = document.getElementById('archived-banner');
+  const countEl = document.getElementById('archived-count');
+  if (!banner || !countEl) return;
+
+  if (count === 0) {
+    banner.style.display = 'none';
+    return;
+  }
+  banner.style.display = 'flex';
+  countEl.textContent  = count;
+}
+
+function toggleArchivedUnits() {
+  const list    = document.getElementById('archived-list');
+  const chevron = document.getElementById('archived-chevron');
+  if (!list) return;
+
+  const isOpen = list.style.display === 'flex';
+  list.style.display = isOpen ? 'none' : 'flex';
+  if (chevron) chevron.textContent = isOpen ? '▸' : '▾';
+
+  if (!isOpen) {
+    list.innerHTML = Object.entries(STATE.archivedUnits).map(([, u]) => {
+      const lastSeen = u.lastSeen
+        ? new Date(u.lastSeen).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+        : '—';
+      return `<div class="archived-item">
+        <span class="archived-id">${escapeHtml(u.unidadId)}</span>
+        <span class="archived-name">${escapeHtml(u.conductor || 'Sin conductor')}</span>
+        <span class="archived-time">${lastSeen}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATS & UI UPDATES
+═══════════════════════════════════════════════════════ */
+/** Devuelve el nombre corto de la geocerca donde está la unidad, o null */
+function getGeocercaLabel(lat, lng) {
+  if (!lat || !lng) return null;
+  for (const g of GEOCERCAS) {
+    if (haversineM(lat, lng, g.lat, g.lng) <= g.radius) return g.name || g.id;
+  }
+  return null;
+}
+
+/** Haversine en metros — misma fórmula que base/geocercas.js */
+function haversineM(lat1, lng1, lat2, lng2) {
+  const R = 6371000, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function updateStats() {
+  let active = 0, idle = 0, offline = 0, sos = 0;
+  Object.values(STATE.units).forEach(u => {
+    const s = normalizeStatus(u.estado);
+    if (s === 'sos') { sos++; active++; }
+    else if (s === 'activo') active++;
+    else if (s === 'libre') idle++;
+    else if (s === 'fuera_servicio') offline++;
+  });
+  const total = active + idle + offline;
+  document.getElementById('stat-active').textContent  = active;
+  document.getElementById('stat-idle').textContent    = idle;
+  document.getElementById('stat-offline').textContent = offline;
+  document.getElementById('stat-sos').textContent     = sos;
+
+  // Actualizar badges de los tabs de filtro
+  const el = id => document.getElementById(id);
+  if (el('tn-all'))    el('tn-all').textContent    = total;
+  if (el('tn-activo')) el('tn-activo').textContent = active;
+  if (el('tn-libre'))  el('tn-libre').textContent  = idle;
+  if (el('tn-fuera'))  el('tn-fuera').textContent  = offline;
+}
+
+function onSearchInput(val) {
+  STATE.searchQuery = val.trim().toLowerCase();
+  updateUnitList();
+}
+
+function updateUnitList() {
+  const container = document.getElementById('unit-list');
+
+  // Construir lista con metadatos
+  let units = Object.entries(STATE.units)
+    .map(([uid, u]) => ({ uid, ...u, _status: normalizeStatus(u.estado) }));
+
+  // Ordenar: SOS > activo > libre > fuera_servicio, luego por ID numérico
+  const order = { sos: 0, activo: 1, libre: 2, fuera_servicio: 3 };
+  units.sort((a, b) => {
+    const oa = order[a._status] ?? 4, ob = order[b._status] ?? 4;
+    if (oa !== ob) return oa - ob;
+    return (a.unidadId || '').localeCompare(b.unidadId || '', 'es', { numeric: true });
+  });
+
+  // Filtro de estado
+  if (STATE.activeFilter !== 'all') {
+    units = units.filter(u => u._status === STATE.activeFilter);
+  }
+
+  // Filtro de búsqueda
+  if (STATE.searchQuery) {
+    units = units.filter(u =>
+      (u.unidadId  || '').toLowerCase().includes(STATE.searchQuery) ||
+      (u.conductor || '').toLowerCase().includes(STATE.searchQuery)
+    );
+  }
+
+  if (units.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+      </svg>
+      ${STATE.searchQuery ? 'Sin resultados para "' + escapeHtml(STATE.searchQuery) + '"' : 'Sin unidades en este filtro'}
+    </div>`;
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  units.forEach(u => {
+    const el      = document.createElement('div');
+    el.className  = `unit-item status-${u._status}`;
+    el.dataset.uid = u.uid;
+
+    const elapsed   = u.timestamp ? getElapsed(u.timestamp) : '—';
+    const spd       = parseInt(u.speed) || 0;
+    const geocerca  = getGeocercaLabel(u.lat, u.lng);
+
+    // Badge de velocidad: solo si la unidad está en movimiento
+    const spdBadge = spd > 0
+      ? `<span class="unit-tag speed ${spd > 40 ? 'fast' : ''}">${spd} km/h</span>`
+      : '';
+
+    // Etiqueta de geocerca (g.name es constante hardcoded, seguro)
+    const geoBadge = geocerca
+      ? `<span class="unit-tag geocerca" title="${escapeHtml(geocerca)}">${escapeHtml(geocerca)}</span>`
+      : '';
+
+    el.innerHTML = `
+      <div class="unit-status-dot"></div>
+      <div class="unit-info" style="flex:1;overflow:hidden">
+        <div style="display:flex;align-items:baseline;gap:7px">
+          <span class="unit-id">${escapeHtml(u.unidadId || u.uid)}</span>
+          <span class="unit-name" style="flex:1">${escapeHtml(u.conductor || 'Sin conductor')}</span>
+        </div>
+        <div class="unit-meta">
+          <span class="unit-time">${elapsed}</span>
+          ${spdBadge}
+          ${geoBadge}
+        </div>
+      </div>
+      <div class="unit-actions">
+        <button class="unit-btn" title="Centrar en mapa"
+          onclick="event.stopPropagation();focusUnit('${escapeHtml(u.uid)}')">⊕</button>
+        <button class="unit-btn" title="Radio"
+          onclick="event.stopPropagation();sendRadioTo('${escapeHtml(u.unidadId || u.uid)}')">📻</button>
+        ${u._status === 'activo' ? `<button class="unit-btn" title="Terminar Viaje" style="color:#4ade80" onclick="event.stopPropagation();terminarViaje('${escapeHtml(u.uid)}')">✓</button>` : ''}
+        ${(u._status === 'activo' || u._status === 'libre') ? `<button class="unit-btn" title="Terminar Turno" style="color:#f04060" onclick="event.stopPropagation();terminarTurno('${escapeHtml(u.uid)}')">⏻</button>` : ''}
+      </div>
+    `;
+    el.onclick = () => focusUnit(u.uid);
+    fragment.appendChild(el);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(fragment);
+}
+
+function getElapsed(ts) {
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 60) return `${diff}s`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m`;
+  return `${Math.floor(diff/3600)}h`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   SOS SYSTEM
+═══════════════════════════════════════════════════════ */
+function checkSOS() {
+  const hasSOS = Object.keys(STATE.sosActive).length > 0;
+  const banner = document.getElementById('sos-banner');
+  if (hasSOS) {
+    banner.classList.add('active');
+    const ids = Object.keys(STATE.sosActive).map(uid => STATE.units[uid]?.unidadId || uid).join(', ');
+    document.getElementById('sos-text').textContent = `⚡ SOS ACTIVO — Unidad(es): ${ids}`;
+  } else {
+    banner.classList.remove('active');
+  }
+}
+
+function triggerSOS(uid, data) {
+  const unitId = STATE.units[uid]?.unidadId || data?.unidadId || uid;
+  playSOSAudio();
+  addAlert({ type: 'sos', title: `🆘 SOS — ${unitId}`, desc: 'Alerta de emergencia activa', time: new Date() });
+  showNotif(`SOS de unidad ${unitId}`, 'error');
+
+  // Focus on map
+  const unit = STATE.units[uid];
+  if (unit?.lat && unit?.lng) {
+    setTimeout(() => { map.panTo({ lat: unit.lat, lng: unit.lng }); map.setZoom(17); }, 500);
+  }
+}
+
+function focusSOS() {
+  const firstUID = Object.keys(STATE.sosActive)[0];
+  if (firstUID) focusUnit(firstUID);
+}
+
+/* ═══════════════════════════════════════════════════════
+   AUDIO — Web Audio API Morse SOS
+═══════════════════════════════════════════════════════ */
+function getAudioCtx() {
+  if (!STATE.audioCtx) {
+    try { STATE.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  return STATE.audioCtx;
+}
+
+function playSOSAudio() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+
+  // SOS: ... --- ...
+  const pattern = [0.1,0.1, 0.1,0.1, 0.1,0.1, 0.3,0.1, 0.3,0.1, 0.3,0.1, 0.1,0.1, 0.1,0.1, 0.1];
+  let t = ctx.currentTime + 0.1;
+  let onOff = true;
+
+  pattern.forEach(dur => {
+    if (onOff) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.3, t);
+      osc.start(t);
+      osc.stop(t + dur);
+    }
+    t += dur;
+    onOff = !onOff;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   CHAT / RADIO
+═══════════════════════════════════════════════════════ */
+let chatKeys = new Set(); // Dedup chat messages
+let isOnChatTab = false;
+
+function renderChatMessage(msg, key) {
+  if (chatKeys.has(key)) return;
+  chatKeys.add(key);
+
+  const container = document.getElementById('chat-messages');
+  const emptyEl = container.querySelector('.empty-state');
+  if (emptyEl) emptyEl.remove();
+
+  const isBase = (msg.remitente || '').toLowerCase().includes('base') ||
+                 (msg.remitente || '').toLowerCase().includes('desp') ||
+                 (msg.remitente || '').toLowerCase().includes('admin');
+
+  const div = document.createElement('div');
+  div.className = `chat-msg ${isBase ? 'is-base' : ''}`;
+
+  // Sanitize XSS
+  const sanitize = s => String(s || '').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' }) : '—';
+
+  div.innerHTML = `
+    <div class="chat-msg-header">
+      <span class="chat-sender ${isBase ? 'is-base' : ''}">${sanitize(msg.remitente || msg.de || 'Desconocido')}</span>
+      <span class="chat-time">${time}</span>
+    </div>
+    <div class="chat-text">${sanitize(msg.mensaje || msg.texto || '')}</div>
+  `;
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+
+  // Badge if not on chat tab
+  if (!isOnChatTab) {
+    STATE.chatBadge++;
+    const badge = document.getElementById('badge-chat');
+    badge.textContent = STATE.chatBadge;
+    badge.classList.add('visible');
+  }
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || !STATE.operator) return;
+
+  const msg = {
+    remitente: STATE.operator.alias,
+    mensaje: text,
+    timestamp: Date.now(),
+    tipo: 'base',
+  };
+
+  STATE.db.ref('/radio').push(msg).catch(e => showNotif('Error al enviar mensaje', 'error'));
+  input.value = '';
+}
+
+function sendRadioTo(unitId) {
+  const text = window.prompt(`📻 Mensaje directo a Unidad ${unitId}:\n(También se publicará en el canal de radio)`);
+  if (!text || !text.trim()) return;
+  const msgText = text.trim();
+  const alias = STATE.operator ? (STATE.operator.alias || STATE.operator.email || 'Base') : 'Base';
+  const despacho = {
+    de: alias,
+    mensaje: msgText,
+    timestamp: Date.now(),
+    tipo: 'despacho',
+    para: String(unitId),
+  };
+  // Mensaje directo al conductor (dispara modal en su app)
+  STATE.db.ref(`/unidades/${unitId}/despacho`).set(despacho)
+    .catch(e => showNotif('Error al enviar mensaje directo', 'error'));
+  // También broadcast al canal de radio para historial
+  STATE.db.ref('/radio').push({ remitente: alias, mensaje: `@${unitId} ${msgText}`, timestamp: Date.now(), tipo: 'base' })
+    .catch(() => {});
+  showNotif(`Mensaje enviado a Unidad ${unitId}`, 'ok');
+}
+
+function clearChatMessages() {
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = `<div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+    </svg>
+    Sin mensajes de radio
+  </div>`;
+  // No limpiar chatKeys: el listener de Firebase sigue activo y re-emitiría
+  // todos los mensajes anteriores si perdemos las claves de deduplicación.
+  STATE.chatBadge = 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ALERTS
+═══════════════════════════════════════════════════════ */
+function addAlert(alert) {
+  STATE.alerts.unshift(alert);
+  if (STATE.alerts.length > 50) STATE.alerts.pop();
+  renderAlerts();
+
+  STATE.alertBadge++;
+  const badge = document.getElementById('badge-alerts');
+  badge.textContent = STATE.alertBadge;
+  badge.classList.add('visible');
+}
+
+function renderAlerts() {
+  const container = document.getElementById('alerts-list');
+  if (STATE.alerts.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>
+      </svg>
+      Sin alertas activas
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = STATE.alerts.map(a => `
+    <div class="alert-item ${a.type}">
+      <div class="alert-title">${escapeHtml(a.title)}</div>
+      <div class="alert-desc">${escapeHtml(a.desc)}</div>
+      <div class="alert-time">${a.time.toLocaleString('es-MX')}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
+}
+
+/* ═══════════════════════════════════════════════════════
+   UI ACTIONS
+═══════════════════════════════════════════════════════ */
+function terminarViaje(uid) {
+  const unit = STATE.units[uid];
+  if (!unit) return;
+  const unitId = unit.unidadId || uid;
+  if (!confirm(`¿Terminar viaje de unidad ${unitId}?`)) return;
+  STATE.db.ref('/unidades/' + uid).update({ estado: 'libre', status: 'libre' })
+    .then(() => showNotif('Viaje terminado — Unidad ' + unitId + ' libre', 'success'))
+    .catch(e => showNotif('Error al terminar viaje: ' + e.message, 'error'));
+}
+
+function terminarTurno(uid) {
+  const unit = STATE.units[uid];
+  if (!unit) return;
+  const unitId = unit.unidadId || uid;
+  if (!confirm(`¿Terminar turno de unidad ${unitId}? Quedará fuera de servicio.`)) return;
+  STATE.db.ref('/unidades/' + uid).update({ estado: 'fuera_servicio', status: 'fuera_servicio' })
+    .then(() => showNotif('Turno terminado — Unidad ' + unitId + ' fuera de servicio', 'success'))
+    .catch(e => showNotif('Error al terminar turno: ' + e.message, 'error'));
+}
+
+function setFilter(filter, btn) {
+  STATE.activeFilter = filter;
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateUnitList();
+}
+
+function focusUnit(uid) {
+  const unit = STATE.units[uid];
+  if (!unit?.lat || !unit?.lng) { showNotif('Unidad sin señal GPS', 'warning'); return; }
+  map.panTo({ lat: unit.lat, lng: unit.lng });
+  map.setZoom(17);
+  if (STATE.unitMarkers[uid]) {
+    updatePopup(uid, STATE.unitMarkers[uid]);
+  }
+}
+
+function centerMap() {
+  map.panTo({ lat: MAP_CENTER[0], lng: MAP_CENTER[1] });
+  map.setZoom(MAP_ZOOM);
+}
+
+function toggleLayer(layer, btn) {
+  btn.classList.toggle('active');
+  if (layer === 'bases') {
+    STATE.showBases = !STATE.showBases;
+    STATE.geocercaMarkers.forEach(m => m.setMap(STATE.showBases ? map : null));
+  } else if (layer === 'circles') {
+    STATE.showCircles = !STATE.showCircles;
+    STATE.geocercaCircles.forEach(c => c.setMap(STATE.showCircles ? map : null));
+  }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.panel-tab').forEach((t, i) => {
+    const tabs = ['bases', 'chat', 'alerts'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+  if (tab === 'bases') document.getElementById('bases-tab').classList.add('active');
+  if (tab === 'chat') {
+    document.getElementById('chat-tab').classList.add('active');
+    isOnChatTab = true;
+    STATE.chatBadge = 0;
+    document.getElementById('badge-chat').classList.remove('visible');
+    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+  } else {
+    isOnChatTab = false;
+  }
+  if (tab === 'alerts') {
+    document.getElementById('alerts-tab').classList.add('active');
+    STATE.alertBadge = 0;
+    document.getElementById('badge-alerts').classList.remove('visible');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   NUEVO SERVICIO — Places Autocomplete + Firebase write
+═══════════════════════════════════════════════════════ */
+let nsOrigenAutocomplete = null;
+let nsDestinoAutocomplete = null;
+let nsOrigenPlace = null;
+let nsDestinoPlace = null;
+
+const NOCHISTLAN_BOUNDS = {
+  north: 17.48, south: 17.44, east: -97.21, west: -97.25,
+};
+
+function initPlacesAutocomplete() {
+  if (typeof google === 'undefined' || !google.maps.places) return;
+
+  const bounds = new google.maps.LatLngBounds(
+    new google.maps.LatLng(NOCHISTLAN_BOUNDS.south, NOCHISTLAN_BOUNDS.west),
+    new google.maps.LatLng(NOCHISTLAN_BOUNDS.north, NOCHISTLAN_BOUNDS.east)
+  );
+  const acOptions = {
+    bounds,
+    componentRestrictions: { country: 'mx' },
+    fields: ['geometry', 'formatted_address', 'name'],
+    strictBounds: false,
+  };
+
+  const origenInput = document.getElementById('ns-origen');
+  const destinoInput = document.getElementById('ns-destino');
+
+  nsOrigenAutocomplete = new google.maps.places.Autocomplete(origenInput, acOptions);
+  nsDestinoAutocomplete = new google.maps.places.Autocomplete(destinoInput, acOptions);
+
+  nsOrigenAutocomplete.addListener('place_changed', () => {
+    nsOrigenPlace = nsOrigenAutocomplete.getPlace();
+  });
+  nsDestinoAutocomplete.addListener('place_changed', () => {
+    nsDestinoPlace = nsDestinoAutocomplete.getPlace();
+  });
+}
+
+function abrirNuevoServicio() {
+  if (!STATE.operator) return;
+  // Populate units dropdown
+  const sel = document.getElementById('ns-unidad');
+  sel.innerHTML = '<option value="">— Cualquier unidad disponible —</option>';
+  Object.entries(STATE.units)
+    .filter(([, u]) => normalizeStatus(u.estado) === 'libre')
+    .forEach(([uid, u]) => {
+      const opt = document.createElement('option');
+      opt.value = u.unidadId || uid;
+      opt.textContent = `${u.unidadId || uid} — ${u.conductor || 'Sin nombre'}`;
+      sel.appendChild(opt);
+    });
+
+  // Reset form
+  ['ns-cliente','ns-telefono','ns-origen','ns-destino','ns-notas'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  nsOrigenPlace = null;
+  nsDestinoPlace = null;
+
+  document.getElementById('modal-nuevo-servicio').classList.remove('hidden');
+}
+
+function cerrarNuevoServicio() {
+  document.getElementById('modal-nuevo-servicio').classList.add('hidden');
+}
+
+async function submitNuevoServicio() {
+  const destino = document.getElementById('ns-destino').value.trim();
+  if (!destino) { showNotif('El destino es obligatorio', 'warning'); return; }
+
+  const btn = document.getElementById('ns-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Despachando...';
+
+  try {
+    const payload = {
+      clienteNombre: document.getElementById('ns-cliente').value.trim() || 'Sin nombre',
+      cliente:       document.getElementById('ns-cliente').value.trim() || 'Sin nombre',
+      clienteTelefono: document.getElementById('ns-telefono').value.trim() || '',
+      telefono:   document.getElementById('ns-telefono').value.trim() || '',
+      origen:     document.getElementById('ns-origen').value.trim() || '',
+      origen_lat: nsOrigenPlace?.geometry?.location?.lat() || null,
+      origen_lng: nsOrigenPlace?.geometry?.location?.lng() || null,
+      destino,
+      destino_lat: nsDestinoPlace?.geometry?.location?.lat() || null,
+      destino_lng: nsDestinoPlace?.geometry?.location?.lng() || null,
+      unidadId:   document.getElementById('ns-unidad').value || null,
+      conductorId: null,
+      estado:     'enviado',
+      tipo:       'manual',
+      notas:      document.getElementById('ns-notas').value.trim() || '',
+      operador:   STATE.operator?.alias || 'base',
+      creadoEn:   firebase.database.ServerValue.TIMESTAMP,
+    };
+
+    await STATE.db.ref('solicitudes').push(payload);
+    showNotif('Servicio despachado correctamente', 'success');
+    addAlert({ type: 'info', title: 'Servicio creado', desc: `${payload.cliente} → ${destino}`, time: new Date() });
+    cerrarNuevoServicio();
+  } catch (err) {
+    console.error('Error despachando servicio:', err);
+    showNotif('Error al crear el servicio', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Despachar';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════════════════════ */
+function showNotif(text, type = 'info') {
+  const container = document.getElementById('notifications');
+  const notif = document.createElement('div');
+  notif.className = `notif ${type}`;
+  const icons = { info:'ℹ', error:'⚡', success:'✓', warning:'⚠' };
+  notif.innerHTML = `<span>${icons[type] || 'ℹ'}</span><span>${escapeHtml(text)}</span>`;
+  container.appendChild(notif);
+  setTimeout(() => {
+    notif.style.animation = 'notif-out 0.3s ease forwards';
+    setTimeout(() => notif.remove(), 300);
+  }, 4000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════════════════ */
+function startClock() {
+  const clock = document.getElementById('clock');
+  const tick = () => {
+    const now = new Date();
+    clock.textContent = now.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════════════════ */
+function doLogin() {
+  const alias = document.getElementById('login-alias').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+
+  errEl.textContent = '';
+
+  const creds = OPERATOR_ALIASES[alias];
+  if (!creds) {
+    errEl.textContent = 'Alias incorrecto';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'VERIFICANDO...';
+
+  // Persistencia LOCAL: el token de sesión sobrevive al cierre del navegador
+  STATE.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => STATE.auth.signInWithEmailAndPassword(creds.email, pass))
+    .then(() => {
+      STATE.operator = { ...creds };
+      document.getElementById('operator-label').textContent = `👤 ${creds.alias}`;
+      document.getElementById('login-screen').style.display = 'none';
+      showNotif(`Bienvenido, ${creds.alias}`, 'success');
+      loadArchivedUnits();   // restaurar archivo del día desde localStorage
+      renderArchivedBanner();
+      attachListeners();
+      addAlert({ type: 'info', title: 'Sesión iniciada', desc: `Operador: ${creds.alias}`, time: new Date() });
+    })
+    .catch(err => {
+      const msg =
+        err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+          ? 'Contraseña incorrecta'
+          : err.code === 'auth/too-many-requests'
+          ? 'Demasiados intentos. Espere unos minutos.'
+          : 'Error de conexión. Verifique internet.';
+      errEl.textContent = msg;
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = 'ENTRAR AL SISTEMA';
+    });
+}
+
+function doLogout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  detachListeners();
+  // Remove all markers
+  Object.values(STATE.unitMarkers).forEach(m => m.setMap(null));
+  STATE.unitMarkers = {};
+  STATE.units = {};
+  STATE.sosActive = {};
+  document.getElementById('unit-list').innerHTML = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  STATE.auth.signOut().catch(() => {});
+  STATE.operator = null;
+}
+
+/* ═══════════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+═══════════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (document.getElementById('login-screen').style.display !== 'none') {
+    if (e.key === 'Enter') doLogin();
+    return;
+  }
+  if (e.key === 'F1') { e.preventDefault(); centerMap(); }
+  if (e.key === 'F2') { e.preventDefault(); switchTab('bases'); }
+  if (e.key === 'F3') { e.preventDefault(); switchTab('chat'); }
+  if (e.key === 'F4') { e.preventDefault(); switchTab('alerts'); }
+});
+
+/* ═══════════════════════════════════════════════════════
+   BOOT SEQUENCE
+═══════════════════════════════════════════════════════ */
+// Google Maps SDK callback — llamado por el SDK cuando está listo
+window.initGoogleMaps = function() {
+  initMap();
+  startClock();
+  initPlacesAutocomplete();
+  document.getElementById('loader').classList.add('hidden');
+
+  // Re-renderizar unidades que llegaron por RTDB antes de que el mapa estuviera listo
+  Object.entries(STATE.units).forEach(([uid, data]) => upsertUnit(uid, data));
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Cargar Google Maps SDK dinámicamente con la key configurada
+  const gmScript = document.createElement('script');
+  gmScript.src = `https://maps.googleapis.com/maps/api/js?key=${window.GOOGLE_MAPS_KEY}&libraries=places&callback=initGoogleMaps&loading=async`;
+  gmScript.async = true;
+  gmScript.defer = true;
+  gmScript.onerror = () => {
+    console.error('Error cargando Google Maps SDK — verifica tu API key y restricciones de dominio');
+    document.getElementById('loader').classList.add('hidden');
+  };
+  document.head.appendChild(gmScript);
+
+  // Enter on password field
+  document.getElementById('login-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  // Auto-restore session: si el operador ya tiene token LOCAL válido, evitar login manual
+  STATE.auth.onAuthStateChanged(user => {
+    if (!user) return; // no hay sesión activa
+    if (STATE.operator) return; // ya estaba logueado en esta pestaña
+
+    // Buscar el alias correspondiente al email autenticado
+    const creds = Object.values(OPERATOR_ALIASES).find(c => c.email === user.email);
+    if (!creds) {
+      // Email no reconocido — cerrar sesión de seguridad
+      STATE.auth.signOut();
+      return;
+    }
+
+    // Restaurar sesión sin mostrar pantalla de login
+    STATE.operator = { ...creds };
+    document.getElementById('operator-label').textContent = `👤 ${creds.alias}`;
+    document.getElementById('login-screen').style.display = 'none';
+    loadArchivedUnits();
+    renderArchivedBanner();
+    attachListeners();
+    showNotif(`Sesión restaurada: ${creds.alias}`, 'success');
+  });
+});
+
+// Prevent memory leaks on page unload
+window.addEventListener('beforeunload', () => {
+  if (STATE.operator) detachListeners();
+  if (STATE.audioCtx) STATE.audioCtx.close();
+});
+
+/* ═══════════════════════════════════════════════════════
+   GESTIONAR CONTRASEÑAS DE CONDUCTORES
+   Llama al Cloud Function setConductorPassword (HTTPS Callable).
+   Solo operadores @sitios-hidalgo.com pueden ejecutar esta acción.
+═══════════════════════════════════════════════════════ */
+async function resetConductorPassword() {
+  const unit    = document.getElementById('pw-unit').value.trim();
+  const newPass = document.getElementById('pw-new').value;
+  const confirm = document.getElementById('pw-confirm').value;
+  const status  = document.getElementById('pw-status');
+  const btn     = document.getElementById('pw-btn');
+
+  status.textContent = '';
+  status.style.color = '';
+
+  if (!unit)    { _pwStatus('Ingresa el número de unidad', 'warn'); return; }
+  if (!newPass) { _pwStatus('Ingresa la nueva contraseña', 'warn'); return; }
+  if (newPass.length < 6) { _pwStatus('La contraseña debe tener al menos 6 caracteres', 'warn'); return; }
+  if (newPass !== confirm) { _pwStatus('Las contraseñas no coinciden', 'warn'); return; }
+
+  btn.textContent = 'PROCESANDO...';
+  btn.disabled = true;
+
+  try {
+    const fn = STATE.functions.httpsCallable('setConductorPassword');
+    const result = await fn({ unit, password: newPass });
+    if (result.data.ok) {
+      _pwStatus(`✅ Contraseña actualizada para unidad ${result.data.unit}`, 'ok');
+      document.getElementById('pw-unit').value    = '';
+      document.getElementById('pw-new').value     = '';
+      document.getElementById('pw-confirm').value = '';
+    }
+  } catch (e) {
+    const msg = e.code === 'functions/permission-denied'
+      ? '❌ Sin permisos: solo operadores de base'
+      : e.code === 'functions/not-found'
+      ? '❌ Unidad no encontrada en Firebase Auth'
+      : `❌ Error: ${e.message}`;
+    _pwStatus(msg, 'danger');
+  } finally {
+    btn.textContent = 'ESTABLECER CONTRASEÑA';
+    btn.disabled = false;
+  }
+}
+
+function _pwStatus(msg, tipo) {
+  const el = document.getElementById('pw-status');
+  el.textContent = msg;
+  el.style.color = tipo === 'ok' ? '#28a745' : tipo === 'warn' ? '#DAA520' : '#dc3545';
+}
+</script>
+</body>
+</html>

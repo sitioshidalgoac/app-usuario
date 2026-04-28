@@ -1,0 +1,14 @@
+{
+  "hosting": {
+    "site": "sitios-hidalgo-base",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/node_modules/**",
+      "**/.git/**",
+      "*.zip"
+    ],
+    "rewrites": [{"source": "**", "destination": "/index.html"}]
+  }
+}

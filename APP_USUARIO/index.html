@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SHidalgo Kué'in - Usuario</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--azul:#1a237e;--dorado:#FFD700;--dorado-oscuro:#DAA520;--rojo:#d32f2f;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body,html{height:100%;font-family:'Segoe UI',sans-serif;overflow:hidden;background:var(--azul);}
+
+/* SPLASH — Premium */
+#splash{position:fixed;inset:0;background:linear-gradient(165deg, #0d1442 0%, #1a237e 40%, #1e2a8a 60%, #0d1442 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.8s;overflow:hidden;}
+#splash::before{content:'';position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(255,215,0,0.08) 0%,transparent 70%);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);animation:splashGlow 3s ease-in-out infinite;}
+@keyframes splashGlow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.5;}50%{transform:translate(-50%,-50%) scale(1.3);opacity:1;}}
+#splash.hide{opacity:0;pointer-events:none;}
+.splash-logo{width:220px;filter:drop-shadow(0 4px 20px rgba(255,215,0,0.3));animation:logoEntry 1.2s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes logoEntry{from{opacity:0;transform:scale(0.8) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+#splash h1{color:var(--dorado);font-size:24px;letter-spacing:3px;text-align:center;margin-top:15px;text-shadow:0 2px 12px rgba(255,215,0,0.25);animation:fadeUp 1s 0.4s both;}
+#splash p{color:rgba(255,215,0,0.7);font-size:11px;letter-spacing:5px;margin-top:8px;font-weight:300;animation:fadeUp 1s 0.6s both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+#splash .copy{position:absolute;bottom:30px;color:rgba(255,255,255,0.35);font-size:10px;letter-spacing:2px;}
+.taxi-icon{font-size:28px;margin-top:25px;animation:taxiDrive 2s ease-in-out infinite;}
+@keyframes taxiDrive{0%{transform:translateX(-8px);opacity:0.7;}50%{transform:translateX(8px);opacity:1;}100%{transform:translateX(-8px);opacity:0.7;}}
+
+/* APP */
+#app{display:none !important;flex-direction:column;height:100vh;}
+#app.show{display:flex !important;}
+
+/* HEADER — Premium */
+header{background:linear-gradient(90deg,#0d1442,#1a237e,#0d1442);color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--dorado);z-index:100;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,0.3);}
+header img{height:32px;border-radius:50%;object-fit:cover;}
+header span{font-weight:bold;font-size:14px;flex:1;}
+#taxi-count{font-size:13px;font-weight:bold;color:#ffffff;}
+#taxi-count.green{color:#4caf50;}
+#taxi-count.orange{color:#DAA520;}
+#taxi-count.red{color:#d32f2f;}
+.menu-btn{background:none;border:none;color:var(--dorado);font-size:20px;cursor:pointer;}
+
+/* MAPA */
+#map{flex:1;width:100%;z-index:1;}
+
+/* BOTONES INFERIORES */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:15px;display:flex;gap:10px;z-index:500;background:linear-gradient(transparent,rgba(26,35,126,0.92));}
+.btn-pedir{flex:1;background:linear-gradient(135deg,#1a237e,#283593);color:#fff;border:2px solid var(--dorado);border-radius:16px;padding:20px;font-size:18px;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,215,0,0.15);transition:transform 0.2s,box-shadow 0.2s;letter-spacing:1px;}
+.btn-pedir:active{transform:scale(0.97);box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+.btn-sos{width:90px;background:linear-gradient(135deg,#d32f2f,#b71c1c);color:#ffffff;border:2px solid rgba(255,255,255,0.15);border-radius:16px;padding:18px;font-size:15px;font-weight:bold;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(211,47,47,0.35);transition:transform 0.15s;}
+.btn-sos:active{transform:scale(0.95);}
+
+/* MENÚ LATERAL */
+#menu{position:fixed;top:0;left:-290px;width:280px;height:100%;background:var(--azul);z-index:2000;transition:left 0.3s;border-right:2px solid var(--dorado);display:flex;flex-direction:column;}
+#menu.open{left:0;}
+.menu-header{padding:40px 20px 20px;text-align:center;border-bottom:1px solid var(--dorado);}
+.menu-header img,.menu-header svg{width:100px;height:100px;border-radius:50%;border:2px solid var(--dorado);}
+.menu-header h2{color:var(--dorado);margin-top:10px;font-size:16px;}
+.menu-header p{color:#ffffff;font-size:11px;}
+.menu-item{padding:18px 25px;color:#fff;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:15px;cursor:pointer;transition:background 0.2s;}
+.menu-item:hover{background:rgba(255,215,0,0.1);}
+.menu-item i{color:var(--dorado);width:20px;}
+#overlay{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.65);z-index:1999;}
+#overlay.show{display:block;}
+
+/* MODAL BUSCANDO */
+#modal-buscando{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.92);z-index:3000;align-items:center;justify-content:center;}
+#modal-buscando.show{display:flex;}
+.modal-box{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;padding:40px;text-align:center;width:85%;}
+.modal-box img{width:80px;border-radius:50%;margin-bottom:15px;}
+.modal-box h2{color:var(--dorado);margin-bottom:10px;}
+.modal-box p{color:#fff;font-size:13px;}
+.spinner{width:50px;height:50px;border:4px solid rgba(255,215,0,0.3);border-top:4px solid var(--dorado);border-radius:50%;animation:spin 1s linear infinite;margin:20px auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.btn-cancelar-busqueda{margin-top:20px;background:var(--rojo);color:#ffffff;border:none;border-radius:16px;padding:12px 30px;font-weight:bold;cursor:pointer;}
+
+/* ESTIMACIÓN DE LLEGADA */
+#eta-badge{position:fixed;bottom:120px;left:15px;background:var(--azul);border:2px solid var(--dorado);border-radius:16px;padding:15px 20px;color:#ffffff;font-weight:bold;display:none;z-index:400;box-shadow:0 4px 15px rgba(26,35,126,0.35);}
+#eta-badge.show{display:block;}
+#eta-badge .eta-taxi{color:var(--dorado);font-size:24px;margin-bottom:8px;}
+#eta-badge .eta-tiempo{font-size:24px;color:var(--dorado);}
+#eta-badge .eta-distancia{font-size:12px;color:rgba(255,255,255,0.7);margin-top:5px;}
+
+/* MODAL CALIFICACIÓN */
+#modal-calificacion{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.92);z-index:3000;align-items:center;justify-content:center;}
+#modal-calificacion.show{display:flex;}
+.modal-calificacion{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;padding:30px;text-align:center;width:85%;max-width:350px;}
+.modal-calificacion h2{color:var(--dorado);margin-bottom:20px;}
+.modal-calificacion .taxista-info{margin:15px 0;}
+.modal-calificacion .taxista-info img{width:60px;border-radius:50%;margin-bottom:8px;}
+.modal-calificacion .taxista-info p{color:#fff;font-size:13px;}
+.estrellas{display:flex;justify-content:center;gap:10px;margin:20px 0;}
+.estrella{font-size:40px;cursor:pointer;transition:transform 0.2s;opacity:0.3;}
+.estrella:hover,.estrella.selected{opacity:1;transform:scale(1.2);color:var(--dorado);}
+.textarea-comentario{width:100%;background:rgba(255,255,255,0.1);border:1px solid var(--dorado);border-radius:16px;padding:10px;color:#ffffff;font-size:12px;resize:none;margin:15px 0;}
+.textarea-comentario::placeholder{color:rgba(255,255,255,0.7);}
+.btn-enviar-calificacion{background:var(--dorado);color:var(--azul);border:none;border-radius:16px;padding:12px 30px;font-weight:bold;cursor:pointer;margin-top:10px;}
+
+/* MODAL CHAT */
+#modal-chat{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.92);z-index:3000;align-items:center;justify-content:center;}
+#modal-chat.show{display:flex;}
+.modal-chat{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;width:90%;height:70vh;max-width:400px;display:flex;flex-direction:column;}
+.chat-header{background:rgba(255,215,0,0.1);border-bottom:1px solid var(--dorado);padding:15px;border-radius:20px 20px 0 0;}
+.chat-header h2{color:var(--dorado);font-size:14px;}
+.chat-header p{color:rgba(255,255,255,0.7);font-size:11px;}
+.chat-messages{flex:1;overflow-y:auto;padding:15px;}
+.chat-msg{margin:10px 0;padding:10px 12px;border-radius:10px;max-width:80%;font-size:13px;}
+.chat-msg.usuario{background:var(--dorado);color:var(--azul);margin-left:auto;border-radius:10px 0 10px 10px;}
+.chat-msg.conductor{background:rgba(255,255,255,0.2);color:#fff;border-radius:0 10px 10px 10px;}
+.chat-input-box{display:flex;gap:8px;padding:12px;border-top:1px solid var(--dorado);}
+.chat-input{flex:1;background:rgba(255,255,255,0.1);border:1px solid var(--dorado);border-radius:20px;padding:10px 15px;color:#fff;font-size:12px;}
+.chat-input::placeholder{color:rgba(255,255,255,0.7);}
+.btn-send{background:var(--dorado);color:var(--azul);border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* MODAL MIS VIAJES */
+#modal-viajes{display:none;position:fixed;inset:0;background:rgba(26,35,126,0.92);z-index:3000;align-items:center;justify-content:center;}
+#modal-viajes.show{display:flex;}
+.modal-viajes{background:var(--azul);border:2px solid var(--dorado);border-radius:20px;width:90%;max-height:70vh;overflow-y:auto;padding:20px;}
+.modal-viajes h2{color:var(--dorado);margin-bottom:15px;}
+.viaje-card{background:rgba(255,215,0,0.05);border:1px solid var(--dorado);border-radius:10px;padding:12px;margin:10px 0;}
+.viaje-card-header{display:flex;justify-content:space-between;margin-bottom:8px;}
+.viaje-card-date{color:rgba(255,255,255,0.7);font-size:11px;}
+.viaje-card-calificacion{color:var(--dorado);font-weight:bold;}
+.viaje-card-info{font-size:12px;color:#fff;margin:5px 0;}
+.viaje-card-conductor{color:rgba(255,255,255,0.7);font-size:11px;}
+.btn-cerrar-modal{position:absolute;top:15px;right:15px;background:var(--rojo);color:#fff;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:18px;}
+
+/* VIAJE ACTIVO - BADGE SUPERIOR */
+#viaje-activo{position:fixed;top:52px;left:0;right:0;background:rgba(255,215,0,0.1);border-bottom:2px solid var(--dorado);padding:12px 15px;display:none;z-index:100;}
+#viaje-activo.show{display:block;}
+.viaje-activo-info{color:#fff;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+.viaje-activo-info .conductor-nombre{color:var(--dorado);font-weight:bold;}
+.btn-viaje-action{background:var(--dorado);color:var(--azul);border:none;border-radius:16px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;margin-left:10px;}
+
+#login-screen{position:fixed;inset:0;background:linear-gradient(165deg, #0d1442 0%, #1a237e 40%, #1e2a8a 60%, #0d1442 100%);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;}
+#login-card{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,215,0,0.4);border-radius:28px;padding:35px 30px;width:100%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,215,0,0.1);backdrop-filter:blur(20px);}
+#login-card h1{color:var(--dorado);font-size:26px;margin-bottom:8px;letter-spacing:1px;text-shadow:0 2px 8px rgba(255,215,0,0.2);}
+#login-card p{color:rgba(255,255,255,0.75);margin-bottom:25px;font-size:13px;line-height:1.5;}
+#login-card .login-logo{margin:0 auto 20px;display:flex;align-items:center;justify-content:center;}
+.login-logo-img{width:180px;filter:drop-shadow(0 4px 15px rgba(255,215,0,0.2));}
+#login-card input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,215,0,0.25);border-radius:14px;padding:16px 18px;color:#ffffff;font-size:15px;margin-bottom:14px;transition:border-color 0.3s,box-shadow 0.3s;}
+#login-card input:focus{outline:none;border-color:var(--dorado);box-shadow:0 0 0 3px rgba(255,215,0,0.1);}
+#login-card input::placeholder{color:rgba(255,255,255,0.5);}
+#login-card .btn-primary{width:100%;background:linear-gradient(135deg,#FFD700,#DAA520);color:var(--azul);border:none;border-radius:14px;padding:18px;font-size:17px;font-weight:bold;cursor:pointer;margin-bottom:12px;letter-spacing:1px;box-shadow:0 4px 15px rgba(255,215,0,0.25);transition:transform 0.2s,box-shadow 0.2s;}
+#login-card .btn-primary:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(255,215,0,0.15);}
+#login-card .btn-link{background:none;border:none;color:rgba(255,215,0,0.7);font-size:13px;cursor:pointer;text-decoration:none;letter-spacing:0.5px;}
+#login-card small{color:rgba(255,255,255,0.4);display:block;margin-top:15px;font-size:11px;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <img src="assets/logo.png" alt="Sitios Hidalgo A.C." class="splash-logo">
+  <h1>SITIOS HIDALGO</h1>
+  <p>A.C. DE NOCHIXTLÁN · OAXACA</p>
+  <span class="copy">© SITIOS HIDALGO A.C. 2026</span>
+</div>
+
+<div id="login-screen">
+  <div id="login-card">
+    <div class="login-logo">
+      <img src="assets/logo.png" alt="Sitios Hidalgo A.C." class="login-logo-img">
+    </div>
+    <h1>Bienvenido</h1>
+    <p>Registra tu nombre y teléfono para solicitar tu taxi.</p>
+    <input id="login-name" type="text" placeholder="Nombre completo" />
+    <input id="login-phone" type="tel" placeholder="Teléfono" />
+    <button class="btn-primary" onclick="iniciarSesion()">CONTINUAR</button>
+    <button class="btn-link" onclick="entrarSinRegistro()">Entrar sin registro</button>
+    <small>Tu información mejora el seguimiento de tu taxi.</small>
+  </div>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div id="app">
+  <header>
+    <button class="menu-btn" onclick="abrirMenu()"><i class="fas fa-bars"></i></button>
+    <img src="assets/logo-header.png" alt="SH" style="height:32px;border-radius:50%;object-fit:cover;">
+    <span>NOCHIXTLÁN, OAXACA</span>
+    <span id="taxi-count">🚕 0 taxis disponibles</span>
+    <i class="fas fa-circle" id="statusDot" style="color:#DAA520;font-size:10px;"></i>
+  </header>
+  <div id="map"></div>
+  <div class="bottom-bar">
+    <button class="btn-pedir" onclick="pedirTaxi()">
+      <i class="fas fa-taxi"></i> SOLICITAR VIAJE
+    </button>
+    <button class="btn-sos" onclick="activarSOSMejorado()">
+      <i class="fas fa-shield-alt"></i> SOS
+    </button>
+  </div>
+</div>
+
+<!-- MENÚ LATERAL -->
+<div id="overlay" onclick="cerrarMenu()"></div>
+<div id="menu">
+  <div class="menu-header">
+    <img src="assets/logo-small.png" alt="Sitios Hidalgo" style="width:100px;border-radius:50%;border:2px solid var(--dorado);object-fit:cover;">
+    <h2>SITIOS HIDALGO</h2>
+    <p>Tradición y Seguridad</p>
+  </div>
+  <div class="menu-item" onclick="mostrarPerfil()"><i class="fas fa-user"></i> Perfil</div>
+  <div class="menu-item" onclick="mostrarMisViajes()"><i class="fas fa-history"></i> Mis Viajes</div>
+  <div class="menu-item" onclick="mostrarConfiguracion()"><i class="fas fa-cog"></i> Configuración</div>
+  <div class="menu-item" onclick="mostrarContacto()"><i class="fas fa-phone"></i> Contacto</div>
+  <div class="menu-item" onclick="mostrarNosotros()"><i class="fas fa-info-circle"></i> Nosotros</div>
+  <div class="menu-item" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</div>
+</div>
+
+<!-- VIAJE ACTIVO - BADGE SUPERIOR -->
+<div id="viaje-activo">
+  <div class="viaje-activo-info">
+    <div>
+      <span class="conductor-nombre" id="viaje-conductor-nombre">Taxi en camino</span>
+      <br><small id="viaje-tiempo-llegada">Calculando...</small>
+    </div>
+    <div>
+      <button class="btn-viaje-action" onclick="abrirChat()">💬 Chat</button>
+      <button class="btn-viaje-action" onclick="abrirCompartirWhatsApp()">📱 Compartir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ESTIMACIÓN LLEGADA -->
+<div id="eta-badge">
+  <div class="eta-taxi">🚕</div>
+  <div class="eta-tiempo"><span id="eta-minutos">--</span> min</div>
+  <div class="eta-distancia"><span id="eta-metros">--</span> m</div>
+</div>
+
+<!-- MODAL BUSCANDO -->
+<div id="modal-buscando">
+  <div class="modal-box">
+    <img src="assets/logo-small.png" alt="Sitios Hidalgo" style="width:80px;border-radius:50%;margin-bottom:15px;">
+    <h2>Buscando taxi...</h2>
+    <div class="spinner"></div>
+    <p>Conectando con conductores disponibles cerca de tu ubicación</p>
+    <button class="btn-cancelar-busqueda" onclick="cancelarBusqueda()">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMACIÓN SOS USUARIO -->
+<div id="modal-sos-usuario" style="display:none;position:fixed;inset:0;background:rgba(180,0,0,0.88);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:#1a0a0a;border:2px solid #dc3545;border-radius:20px;padding:30px;text-align:center;width:85%;max-width:320px;">
+    <div style="font-size:48px;margin-bottom:12px">🆘</div>
+    <h3 style="color:#ff4444;margin-bottom:10px;font-size:18px">¿ACTIVAR ALERTA SOS?</h3>
+    <p style="color:#ccc;font-size:13px;margin-bottom:24px">Tu ubicación exacta será enviada a la Base Central.</p>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button onclick="document.getElementById('modal-sos-usuario').classList.remove('show');document.getElementById('modal-sos-usuario').style.display='none';"
+        style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #888;background:transparent;color:#aaa;font-size:13px;cursor:pointer">
+        CANCELAR
+      </button>
+      <button onclick="_confirmarSOSUsuario()"
+        style="flex:1;padding:12px;border-radius:10px;border:none;background:#dc3545;color:#fff;font-size:14px;font-weight:700;cursor:pointer">
+        CONFIRMAR SOS
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CALIFICACIÓN -->
+<div id="modal-calificacion">
+  <div class="modal-calificacion">
+    <h2>¿Cómo fue tu viaje?</h2>
+    <div class="taxista-info" id="taxista-info-container">
+      <img id="taxista-foto" src="assets/logo-small.png" alt="" style="width:60px;border-radius:50%;margin-bottom:8px;">
+      <p id="taxista-nombre">Conductor</p>
+    </div>
+    <div class="estrellas" id="estrellas-container"></div>
+    <textarea class="textarea-comentario" id="comentario-viaje" placeholder="Comentario (opcional)"></textarea>
+    <button class="btn-enviar-calificacion" onclick="enviarCalificacion()">Enviar Calificación</button>
+  </div>
+</div>
+
+<!-- MODAL CHAT -->
+<div id="modal-chat">
+  <div class="modal-chat">
+    <div class="chat-header">
+      <h2>💬 Chat con conductor</h2>
+      <p id="chat-conductor-nombre">Conductor</p>
+    </div>
+    <div class="chat-messages" id="chat-mensajes"></div>
+    <div class="chat-input-box">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensajeChat()">
+      <button class="btn-send" onclick="enviarMensajeChat()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MIS VIAJES -->
+<div id="modal-viajes">
+  <div class="modal-viajes">
+    <button class="btn-cerrar-modal" onclick="cerrarModalViajes()">✕</button>
+    <h2>📋 Mis Viajes</h2>
+    <div id="viajes-lista"></div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// CONFIG FIREBASE - CON MANEJO DE ERRORES
+let db = null, rtdb = null, auth = null;
+try {
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEu6dOk9mUqXp52lyY6vBEm4GAsgU0ESU",
+    authDomain: "sitios-hidalgo-gps.firebaseapp.com",
+    databaseURL: "https://sitios-hidalgo-gps-default-rtdb.firebaseio.com",
+    projectId: "sitios-hidalgo-gps",
+    storageBucket: "sitios-hidalgo-gps.appspot.com",
+    messagingSenderId: "140903781731",
+    appId: "1:140903781731:web:2178219a57a3244db42f56"
+  };
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  rtdb = firebase.database();
+  auth = firebase.auth();
+  console.log('✅ Firebase inicializado');
+} catch(e) {
+  console.error('❌ Error inicializando Firebase (continuando sin BD):', e);
+}
+
+// VARIABLES
+let map, marcadoresTaxis = {}, unsubscribeViaje = null, unsubViajeActivo = null;
+let viajeActualId = null, viajeActualData = null, miUbicacion = null;
+let usuarioId = null, estrellaSeleccionada = 0;
+let watchIdGPS = null, intervaloETA = null, rutaViaje = null, notificacionLlegandoMostrada = false, taxiCount = 0;
+const CENTRO = [17.4575, -97.2273];
+
+// NOTIFICACIONES
+function solicitarPermisoNotificaciones() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function mostrarNotificacion(titulo, cuerpo) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(titulo, { body: cuerpo });
+  } catch (e) {
+    console.warn('Notificación no disponible:', e);
+  }
+}
+
+function actualizarConteoTaxis(cantidad) {
+  taxiCount = cantidad;
+  const display = document.getElementById('taxi-count');
+  if (!display) return;
+  display.textContent = `🚕 ${cantidad} taxis disponibles`;
+  display.classList.toggle('green', cantidad > 3);
+  display.classList.toggle('orange', cantidad > 0 && cantidad <= 3);
+  display.classList.toggle('red', cantidad === 0);
+  const status = document.getElementById('statusDot');
+  if (status) {
+    status.style.color = cantidad === 0 ? '#d32f2f' : cantidad <= 3 ? '#DAA520' : '#4caf50';
+  }
+}
+
+function actualizarRuta() {
+  if (!map || !miUbicacion || !viajeActualData || !viajeActualData.conductor_lat || !viajeActualData.conductor_lng) return;
+  const puntos = [[miUbicacion.lat, miUbicacion.lng], [viajeActualData.conductor_lat, viajeActualData.conductor_lng]];
+  if (rutaViaje) {
+    rutaViaje.setLatLngs(puntos);
+  } else {
+    rutaViaje = L.polyline(puntos, { color: '#FFD700', weight: 5, opacity: 0.9 }).addTo(map);
+  }
+}
+
+// UTILIDADES
+function vibrar(ms = 200) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+// Toast no bloqueante para APP_USUARIO (reemplaza alert())
+function mostrarToastUsuario(msg, tipo) {
+  let tw = document.getElementById('toast-wrapper-usuario');
+  if (!tw) {
+    tw = document.createElement('div');
+    tw.id = 'toast-wrapper-usuario';
+    tw.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(tw);
+  }
+  const t = document.createElement('div');
+  const colors = { ok: '#28a745', warn: '#DAA520', danger: '#dc3545' };
+  t.style.cssText = `background:${colors[tipo] || '#1a1a2e'};color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;max-width:300px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.5);pointer-events:none;`;
+  t.textContent = msg;
+  tw.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+  const R = 6371; // Radio de tierra en km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c * 1000; // metros
+}
+
+function cargarHistorial() {
+  return JSON.parse(localStorage.getItem('viajes_historial') || '[]');
+}
+
+function guardarHistorial(viaje) {
+  const historial = cargarHistorial();
+  historial.unshift(viaje);
+  localStorage.setItem('viajes_historial', JSON.stringify(historial.slice(0, 50)));
+}
+
+// SPLASH → APP
+setTimeout(() => {
+  try {
+    console.log('🎬 Ocultando splash screen...');
+    const splash = document.getElementById('splash');
+    if (splash) {
+      splash.classList.add('hide');
+      setTimeout(() => {
+        try {
+          splash.style.display = 'none';
+          const app = document.getElementById('app');
+          if (app) {
+            app.classList.add('show');
+            console.log('✅ App mostrada');
+          }
+          initLogin();
+          // Inicializar mapa sin esperar Firebase
+          try {
+            if (typeof initMapa === 'function') {
+              initMapa();
+              console.log('✅ Mapa inicializado');
+            }
+          } catch(e) {
+            console.warn('⚠️ Error inicializando mapa:', e);
+          }
+          // Leer taxis directamente — /unidades y /solicitudes son públicos
+          try {
+            if (typeof escucharTaxis === 'function') {
+              escucharTaxis();
+              console.log('✅ Escuchando taxis (sin auth requerida)');
+            }
+          } catch(e) {
+            console.warn('⚠️ Firebase no disponible aún:', e);
+          }
+        } catch(e) {
+          console.error('Error crítico después del splash:', e);
+        }
+      }, 800);
+    }
+  } catch(e) {
+    console.error('Error ocultando splash:', e);
+    const app = document.getElementById('app');
+    if (app) app.classList.add('show');
+  }
+}, 2500);
+
+// INIT MAPA
+function initMapa() {
+  try {
+    console.log('🗺️ Inicializando Leaflet...');
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+      throw new Error('Contenedor #map no encontrado en el DOM');
+    }
+    
+    map = L.map('map', { 
+      zoomControl: false, 
+      attributionControl: false,
+      center: CENTRO,
+      zoom: 14
+    });
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    L.control.zoom({ position: 'topright' }).addTo(map);
+    
+    // Agregar marcador del centro
+    L.marker(CENTRO, {
+      title: 'SITIOS HIDALGO'
+    }).addTo(map).bindPopup('SITIOS HIDALGO<br>Nochixtlán, Oaxaca');
+    
+    console.log('✅ Leaflet inicializado en:', CENTRO);
+  } catch(e) {
+    console.error('❌ Error inicializando mapa:', e);
+  }
+}
+
+// ICONO TAXI DORADO
+function iconoTaxi() {
+  return L.divIcon({
+    className: '',
+    html: '<div style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(26,35,126,0.45));">🚕</div>',
+    iconSize: [35, 35], iconAnchor: [17, 17]
+  });
+}
+
+// ESCUCHAR TAXIS EN RTDB + CALCULAR ETA
+function escucharTaxis() {
+  try {
+    if (!rtdb) {
+      console.warn('⚠️ RTDB no disponible, taxis no se mostrarán');
+      return;
+    }
+    
+    rtdb.ref('unidades').on('value', snap => {
+      try {
+        const data = snap.val() || {};
+        // Remover taxis que ya no están o no están libres
+        Object.keys(marcadoresTaxis).forEach(id => {
+          const c = data[id];
+          const esLibre = c && (c.status === 'libre' || c.estado === 'libre' || c.estado === 'disponible');
+          if (!c || !esLibre) {
+            if (map && marcadoresTaxis[id]) {
+              map.removeLayer(marcadoresTaxis[id]);
+            }
+            delete marcadoresTaxis[id];
+          }
+        });
+        // Agregar/mover taxis libres
+        let distanciaMinima = Infinity;
+        let taxiMasCercano = null;
+        Object.entries(data).forEach(([id, c]) => {
+          const esLibre = c.status === 'libre' || c.estado === 'libre' || c.estado === 'disponible';
+          if (!c.lat || !c.lng || !esLibre) return;
+          if (marcadoresTaxis[id]) {
+            marcadoresTaxis[id].setLatLng([c.lat, c.lng]);
+          } else if (map) {
+            marcadoresTaxis[id] = L.marker([c.lat, c.lng], { icon: iconoTaxi() })
+              .bindPopup(`<b>${id}</b><br>Disponible`)
+              .addTo(map);
+          }
+          
+          // Calcular distancia si tenemos ubicación del usuario
+          if (miUbicacion && !viajeActualId) {
+            const dist = calcularDistancia(miUbicacion.lat, miUbicacion.lng, c.lat, c.lng);
+            if (dist < distanciaMinima) {
+              distanciaMinima = dist;
+              taxiMasCercano = { id, lat: c.lat, lng: c.lng, dist };
+            }
+          }
+        });
+
+        const totalDisponibles = Object.values(data).filter(c => c && c.lat && c.lng && (c.status === 'libre' || c.estado === 'libre' || c.estado === 'disponible')).length;
+        actualizarConteoTaxis(totalDisponibles);
+        if (viajeActualId) actualizarRuta();
+
+        // Mostrar ETA del taxi más cercano
+        if (taxiMasCercano && miUbicacion && !viajeActualId) {
+          const minutos = Math.max(1, Math.round(taxiMasCercano.dist / 1000 / 0.667));
+          document.getElementById('eta-minutos').textContent = minutos;
+          document.getElementById('eta-metros').textContent = Math.round(taxiMasCercano.dist);
+          document.getElementById('eta-badge').classList.add('show');
+        } else if (!viajeActualId) {
+          document.getElementById('eta-badge').classList.remove('show');
+        }
+      } catch(e) {
+        console.error('Error procesando taxis:', e);
+      }
+    }, (err) => {
+      console.error('Error escuchando taxis:', err);
+    });
+  } catch(e) {
+    console.error('Error en escucharTaxis:', e);
+  }
+}
+
+// ENCONTRAR CONDUCTOR MÁS CERCANO DISPONIBLE
+async function encontrarConductorMasCercano(userLat, userLng) {
+  return new Promise((resolve, reject) => {
+    if (!rtdb) {
+      reject(new Error('RTDB no disponible'));
+      return;
+    }
+    rtdb.ref('unidades').once('value', snap => {
+      try {
+        const unidades = snap.val() || {};
+        let closest = null;
+        let minDist = Infinity;
+        
+        Object.entries(unidades).forEach(([id, unit]) => {
+          const esLibre = unit.status === 'libre' || unit.estado === 'libre' || unit.estado === 'disponible';
+          if (unit.lat && unit.lng && esLibre) {
+            const dist = calcularDistancia(userLat, userLng, unit.lat, unit.lng);
+            if (dist < minDist) {
+              minDist = dist;
+              closest = { id, ...unit, distancia: dist };
+            }
+          }
+        });
+        
+        if (closest) {
+          resolve(closest);
+        } else {
+          reject(new Error('No hay conductores disponibles'));
+        }
+      } catch(e) {
+        reject(e);
+      }
+    }, reject);
+  });
+}
+
+// PEDIR TAXI + CAPTURAR GPS
+async function pedirTaxi() {
+  try {
+    if (!rtdb) {
+      alert('La app está funcionando en modo offline');
+      return;
+    }
+    const destino = prompt('¿A dónde necesitas ir?');
+    if (!destino || !destino.trim()) return;
+    document.getElementById('modal-buscando').classList.add('show');
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        miUbicacion = { lat, lng };
+        const uid = 'usuario_' + (localStorage.getItem('usuarioTelefono') || Date.now());
+        usuarioId = uid;
+
+        // Encontrar conductor más cercano
+        const conductor = await encontrarConductorMasCercano(lat, lng);
+
+        // Obtener datos del cliente
+        const clienteNombre = localStorage.getItem('usuarioNombre') || 'Usuario';
+        const clienteTelefono = localStorage.getItem('usuarioTelefono') || '';
+
+        // Escribir solicitud en RTDB (conductor y base escuchan RTDB)
+        rtdb.ref('solicitudes').push({
+          usuarioId: uid,
+          clienteNombre: clienteNombre,
+          clienteTelefono: clienteTelefono,
+          unidadId: conductor.id,
+          destino: destino.trim(),
+          lat, lng,
+          estado: 'enviado',
+          ts: firebase.database.ServerValue.TIMESTAMP
+        }).then(ref => escucharRespuesta(ref.key));
+      } catch(e) {
+        console.error('Error procesando geolocalización o conductor:', e);
+        mostrarToastUsuario('⚠️ No hay conductores disponibles. Intenta en un momento.', 'warn');
+        document.getElementById('modal-buscando').classList.remove('show');
+      }
+    }, (err) => {
+      console.error('Error GPS:', err);
+      mostrarToastUsuario('📍 Activa tu GPS para solicitar un taxi', 'warn');
+      document.getElementById('modal-buscando').classList.remove('show');
+    });
+  } catch(e) {
+    console.error('Error en pedirTaxi:', e);
+    mostrarToastUsuario('❌ Error al solicitar taxi. Intenta de nuevo.', 'warn');
+  }
+}
+
+// ESCUCHAR RESPUESTA DEL CONDUCTOR + MONITOREO DE VIAJE (lee RTDB)
+function escucharRespuesta(solicitudId) {
+  viajeActualId = solicitudId;
+  const ref = rtdb.ref('solicitudes/' + solicitudId);
+  ref.on('value', snap => {
+    const d = snap.val();
+    if (!d) return;
+    if (d.estado === 'aceptado') {
+      document.getElementById('modal-buscando').classList.remove('show');
+      viajeActualData = d;
+      notificacionLlegandoMostrada = false;
+      mostrarViajeActivo(d);
+      actualizarRuta();
+      monitorizarETAViaje(d);
+      mostrarNotificacion('Viaje aceptado', 'Tu conductor aceptó el viaje y ya está en camino.');
+      mostrarToastUsuario(`✅ Conductor asignado: ${d.conductorId || 'En camino'}`, 'ok');
+    } else if (d.estado === 'completado') {
+      ref.off();
+      detenerMonitoreoViaje();
+      mostrarCalificacion(d);
+      guardarHistorial({
+        fecha: new Date().toLocaleDateString('es-MX'),
+        hora: new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute: '2-digit'}),
+        conductor: d.conductorId,
+        destino: d.destino || 'Destino desconocido',
+        distancia: d.distancia || '--',
+        estado: 'Finalizado'
+      });
+    } else if (d.estado === 'cancelado') {
+      ref.off();
+      detenerMonitoreoViaje();
+      guardarHistorial({
+        fecha: new Date().toLocaleDateString('es-MX'),
+        hora: new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute: '2-digit'}),
+        conductor: d.conductorId || '--',
+        destino: d.destino || 'Destino desconocido',
+        distancia: d.distancia || '--',
+        estado: 'Cancelado'
+      });
+      mostrarToastUsuario('❌ El viaje fue cancelado', 'warn');
+    }
+  });
+  unsubscribeViaje = () => { ref.off(); };
+}
+
+// MONITORIZAR ETA DEL VIAJE
+function monitorizarETAViaje(viaje) {
+  document.getElementById('eta-badge').classList.remove('show');
+  if (intervaloETA) clearInterval(intervaloETA);
+  
+  // Actualizar cada 5 segundos
+  intervaloETA = setInterval(() => {
+    if (viajeActualData && viajeActualData.conductor_lat && viajeActualData.conductor_lng && miUbicacion) {
+      actualizarRuta();
+      const dist = calcularDistancia(miUbicacion.lat, miUbicacion.lng, 
+                                     viajeActualData.conductor_lat, 
+                                     viajeActualData.conductor_lng);
+      const minutos = Math.max(1, Math.round(dist / 1000 / 0.667));
+      document.getElementById('eta-minutos').textContent = minutos;
+      document.getElementById('eta-metros').textContent = Math.round(dist);
+      document.getElementById('eta-badge').classList.add('show');
+      if (dist <= 200 && !notificacionLlegandoMostrada) {
+        notificacionLlegandoMostrada = true;
+        mostrarNotificacion('Tu taxi está llegando', 'Tu taxi está a menos de 200 metros. Prepárate para abordar.');
+      }
+    }
+  }, 5000);
+}
+
+// MOSTRAR VIAJE ACTIVO
+function mostrarViajeActivo(viaje) {
+  document.getElementById('viaje-conductor-nombre').textContent = '🚕 ' + (viaje.conductorId || 'Taxi');
+  document.getElementById('viaje-tiempo-llegada').textContent = 'En camino...';
+  document.getElementById('viaje-activo').classList.add('show');
+}
+
+// DETENER MONITOREO DE VIAJE
+function detenerMonitoreoViaje() {
+  viajeActualId = null;
+  viajeActualData = null;
+  if (intervaloETA) { clearInterval(intervaloETA); intervaloETA = null; }
+  if (unsubscribeViaje) { unsubscribeViaje(); unsubscribeViaje = null; }
+  if (unsubViajeActivo) { unsubViajeActivo(); unsubViajeActivo = null; }
+  if (rutaViaje && map) { map.removeLayer(rutaViaje); rutaViaje = null; }
+  document.getElementById('viaje-activo').classList.remove('show');
+  document.getElementById('eta-badge').classList.remove('show');
+}
+
+// CANCELAR BÚSQUEDA
+function cancelarBusqueda() {
+  document.getElementById('modal-buscando').classList.remove('show');
+  if (unsubscribeViaje) { unsubscribeViaje(); unsubscribeViaje = null; }
+}
+
+// SOS - CON GPS EXACTO Y VIBRACIÓN
+// Escribe en RTDB /sos (compatible con database.rules.json) para que
+// la base central lo vea inmediatamente, sin depender de Firestore.
+function activarSOSMejorado() {
+  try {
+    const modalSOS = document.getElementById('modal-sos-usuario');
+    if (modalSOS) { modalSOS.style.display = 'flex'; return; }
+    _confirmarSOSUsuario(); // fallback si no existe el modal
+  } catch(e) {
+    console.error('Error activando SOS:', e);
+  }
+}
+
+function _confirmarSOSUsuario() {
+  const modalSOS = document.getElementById('modal-sos-usuario');
+  if (modalSOS) modalSOS.classList.remove('show');
+  navigator.geolocation.getCurrentPosition(pos => {
+    try {
+      const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+      const uid = 'usuario_' + (localStorage.getItem('usuarioTelefono') || Date.now());
+
+      if (rtdb) {
+        rtdb.ref('sos').push({
+          usuarioId: uid,
+          nombre:    localStorage.getItem('usuarioNombre') || 'Usuario',
+          telefono:  localStorage.getItem('usuarioTelefono') || '',
+          lat, lng,
+          accuracy,
+          timestamp: firebase.database.ServerValue.TIMESTAMP,
+          activo:    true,
+          tipo:      'EMERGENCIA_USUARIO'
+        });
+      }
+
+      vibrar([200, 100, 200, 100, 500]);
+      mostrarNotificacion('SOS enviado', 'Tu ubicación fue compartida con la base.');
+      mostrarToastUsuario('🆘 Alerta SOS enviada. Tu ubicación fue compartida.', 'danger');
+    } catch(e) {
+      console.error('Error procesando SOS:', e);
+      mostrarToastUsuario('⚠️ Ocurrió un error. Llama directamente a emergencias.', 'warn');
+    }
+  }, (err) => {
+    console.error('Error SOS GPS:', err);
+    mostrarToastUsuario('⚠️ No pudimos obtener tu GPS. Intenta de nuevo.', 'warn');
+  });
+}
+
+// CALIFICACIÓN POST-VIAJE
+function mostrarCalificacion(datosViaje) {
+  estrellaSeleccionada = 0;
+  
+  // Generar estrellas del 1 al 5
+  let estrellas = '';
+  for (let i = 1; i <= 5; i++) {
+    estrellas += '<span class="estrella" data-valor="' + i + '" onclick="seleccionarEstrella(' + i + ')">⭐</span>';
+  }
+  
+  document.getElementById('estrellas-container').innerHTML = estrellas;
+  document.getElementById('taxista-nombre').textContent = datosViaje.conductorId || 'Conductor';
+  document.getElementById('comentario-viaje').value = '';
+  document.getElementById('modal-calificacion').classList.add('show');
+}
+
+function seleccionarEstrella(valor) {
+  estrellaSeleccionada = valor;
+  document.querySelectorAll('.estrella').forEach((e, idx) => {
+    if (idx < valor) {
+      e.classList.add('selected');
+    } else {
+      e.classList.remove('selected');
+    }
+  });
+}
+
+function enviarCalificacion() {
+  if (estrellaSeleccionada === 0) {
+    alert('Por favor selecciona una calificación');
+    return;
+  }
+  
+  const comentario = document.getElementById('comentario-viaje').value;
+  db.collection('calificaciones').add({
+    viajeId: viajeActualId,
+    conductorId: viajeActualData?.conductorId,
+    usuarioId: usuarioId,
+    calificacion: estrellaSeleccionada,
+    comentario: comentario,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    alert('✅ Gracias por tu calificación');
+    document.getElementById('modal-calificacion').classList.remove('show');
+    vibrar(100);
+  });
+}
+
+// MIS VIAJES - HISTORIAL
+function mostrarMisViajes() {
+  cerrarMenu();
+  const historial = cargarHistorial();
+  let html = '';
+  
+  if (historial.length === 0) {
+    html = '<p style="color:rgba(255,255,255,0.7);text-align:center;padding:20px;">No tienes viajes registrados</p>';
+  } else {
+    historial.forEach(v => {
+      html += '<div class="viaje-card">' +
+              '<div class="viaje-card-header">' +
+              '<span class="viaje-card-date">' + v.fecha + ' ' + v.hora + '</span>' +
+              '<span class="viaje-card-calificacion">' + '⭐'.repeat(v.calificacion || 0) + '</span>' +
+              '</div>' +
+              '<div class="viaje-card-info">📍 ' + v.destino + '</div>' +
+              '<div class="viaje-card-info">🚕 ' + v.conductor + '</div>' +
+              '<div class="viaje-card-conductor">' + (v.distancia && v.distancia !== '--' ? v.distancia + ' km · ' : '') + (v.estado || 'Finalizado') + '</div>' +
+              '</div>';
+    });
+  }
+  
+  document.getElementById('viajes-lista').innerHTML = html;
+  document.getElementById('modal-viajes').classList.add('show');
+}
+
+function cerrarModalViajes() {
+  document.getElementById('modal-viajes').classList.remove('show');
+}
+
+// CHAT CON CONDUCTOR
+function abrirChat() {
+  if (!viajeActualId) {
+    alert('No hay viaje activo');
+    return;
+  }
+  
+  document.getElementById('chat-conductor-nombre').textContent = viajeActualData?.conductorId || 'Conductor';
+  document.getElementById('chat-mensajes').innerHTML = '';
+  document.getElementById('chat-input').value = '';
+  document.getElementById('modal-chat').classList.add('show');
+  
+  // Escuchar mensajes en tiempo real
+  try {
+    if (db) {
+      db.collection('chats').where('viajeId', '==', viajeActualId)
+        .orderBy('timestamp', 'asc')
+        .onSnapshot(snap => {
+          let html = '';
+          snap.forEach(doc => {
+            const msg = doc.data();
+            const esUsuario = msg.tipo === 'usuario';
+            html += '<div class="chat-msg ' + (esUsuario ? 'usuario' : 'conductor') + '"><b>' + msg.remitente + ':</b> ' + msg.texto + '</div>';
+          });
+          document.getElementById('chat-mensajes').innerHTML = html;
+          document.getElementById('chat-mensajes').scrollTop = document.getElementById('chat-mensajes').scrollHeight;
+        });
+    }
+  } catch(e) {
+    console.error('Error en chat:', e);
+  }
+}
+
+function enviarMensajeChat() {
+  try {
+    const texto = document.getElementById('chat-input').value.trim();
+    if (!texto || !viajeActualId || !db) return;
+    
+    db.collection('chats').add({
+      viajeId: viajeActualId,
+      tipo: 'usuario',
+      remitente: 'Tú',
+      texto: texto,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('chat-input').value = '';
+  } catch(e) {
+    console.error('Error enviando mensaje:', e);
+  }
+}
+
+// MANEJADORES GLOBALES DE ERRORES
+window.addEventListener('error', function(e) {
+  console.error('❌ Error no capturado:', e.error);
+  // La app no debería detenerse por errores en JavaScript
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+  console.error('❌ Promise rechazada:', e.reason);
+  // Prevenir que el navegador maneje la promesa rechazada
+  e.preventDefault();
+});
+
+// Log de inicialización
+console.log('🚕 SITIOS HIDALGO - App Usuario cargada');
+console.log('💾 Modo:',db ? 'ONLINE (Firebase activado)' : 'OFFLINE (Sin Firebase)');
+
+function initLogin() {
+  const nombre = localStorage.getItem('usuarioNombre');
+  const telefono = localStorage.getItem('usuarioTelefono');
+  if (nombre && telefono) {
+    usuarioId = 'usuario_' + telefono.replace(/\D/g, '') || 'usuario_' + Date.now();
+    const login = document.getElementById('login-screen');
+    if (login) login.style.display = 'none';
+    solicitarPermisoNotificaciones();
+  }
+}
+
+function iniciarSesion() {
+  const nombre = document.getElementById('login-name').value.trim();
+  const telefono = document.getElementById('login-phone').value.trim();
+  if (!nombre || !telefono) {
+    alert('Completa tu nombre y teléfono para continuar.');
+    return;
+  }
+  localStorage.setItem('usuarioNombre', nombre);
+  localStorage.setItem('usuarioTelefono', telefono);
+  usuarioId = 'usuario_' + telefono.replace(/\D/g, '') || 'usuario_' + Date.now();
+  ocultarLogin();
+}
+
+function entrarSinRegistro() {
+  usuarioId = 'anonimo_' + Date.now();
+  ocultarLogin();
+}
+
+function ocultarLogin() {
+  const login = document.getElementById('login-screen');
+  if (login) login.style.display = 'none';
+  solicitarPermisoNotificaciones();
+}
+
+// COMPARTIR VIAJE POR WHATSAPP
+function abrirCompartirWhatsApp() {
+  const lat = viajeActualData?.conductor_lat || miUbicacion?.lat;
+  const lng = viajeActualData?.conductor_lng || miUbicacion?.lng;
+  if (!lat || !lng) {
+    alert('Ubicación no disponible');
+    return;
+  }
+  const urlMaps = 'https://maps.google.com/?q=' + lat + ',' + lng;
+  const mensaje = encodeURIComponent('Mi taxi está en camino, puedes seguirlo aquí: ' + urlMaps);
+  const urlWhatsApp = 'https://wa.me/?text=' + mensaje;
+  window.open(urlWhatsApp, '_blank');
+}
+
+// FUNCIONES DE MENÚ
+function mostrarPerfil() {
+  cerrarMenu();
+  alert('📱 Perfil:\n\nUsuario ID: ' + usuarioId + '\n\nFunción en desarrollo');
+}
+
+function mostrarConfiguracion() {
+  cerrarMenu();
+  alert('⚙️ Configuración\n\nFunción en desarrollo');
+}
+
+function mostrarContacto() {
+  cerrarMenu();
+  alert('📞 Contacto\n\nSitios Hidalgo\nNochixtlán, Oaxaca\nTel: +52 123 456 7890');
+}
+
+function mostrarNosotros() {
+  cerrarMenu();
+  alert('ℹ️ SITIOS HIDALGO\n\nTradición y Seguridad\n\n© 2026 Todos los derechos reservados');
+}
+
+// MENÚ
+function abrirMenu() {
+  document.getElementById('menu').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+function cerrarMenu() {
+  document.getElementById('menu').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+function cerrarSesion() {
+  auth.signOut().then(() => location.reload());
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SERVICE WORKER — Registro + Forzar actualización
+// ══════════════════════════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+    .then((reg) => {
+      console.log('✅ SW registrado, scope:', reg.scope);
+      // Forzar búsqueda de actualización en cada carga
+      reg.update().catch(() => {});
+      // Cuando hay un SW nuevo esperando, activarlo de inmediato y recargar
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        if (newSW) {
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'activated') {
+              console.log('🔄 Nuevo SW activado — recargando página');
+              window.location.reload();
+            }
+          });
+        }
+      });
+    })
+    .catch((err) => console.warn('SW registro falló:', err));
+
+  // Si hay un SW controlando la página y cambia, recargar
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    console.log('🔄 Controlador SW cambiado — recargando');
+    window.location.reload();
+  });
+}
+</script>
+</body>
+</html>
+
+

@@ -18,10 +18,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout repo (con submódulos)
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          submodules: recursive   # Necesario para conductor/ y APP_USUARIO/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -78,10 +76,8 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - name: Checkout repo (con submódulos)
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Deploy preview — App Usuario
         uses: FirebaseExtended/action-hosting-deploy@v0
